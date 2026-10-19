@@ -1,0 +1,15 @@
+# Mirror of the third-party reference site (craftingtale.com) — not ours to publish
+reference/
+
+# Raw customer photos from WhatsApp (contain real people's faces/names) — keep out of the repo
+WhatsApp Image *.jpeg
+
+# Design pipeline screenshots and Codex logs (include screenshots of the reference site)
+design/
+
+# Python / OS / editor noise
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+desktop.ini

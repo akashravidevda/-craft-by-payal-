@@ -1,0 +1,44 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "craftingtale-reference",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5520",
+        "-d",
+        "reference/craftingtale/html"
+      ],
+      "port": 5520,
+      "autoPort": false
+    },
+    {
+      "name": "brand-preview",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5521",
+        "-d",
+        "brand"
+      ],
+      "port": 5521,
+      "autoPort": false
+    },
+    {
+      "name": "site",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5522",
+        "-d",
+        "site"
+      ],
+      "port": 5522,
+      "autoPort": false
+    }
+  ]
+}
