@@ -196,18 +196,35 @@ def not_found():
         <h1 class="p-head__title">This little corner is empty<svg class="doodle" aria-hidden="true"><use href="#doodle-heart"/></svg></h1>
         <p class="p-head__lede">The page you're looking for may have moved. Let's get you back to the good stuff.</p>
         <div class="cta-band__btns">
-          <a class="btn btn--coral" href="index.html">Back to home <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
-          <a class="btn-outline" href="collections/miniature-frame.html">Shop frames</a>
+          <a class="btn btn--coral" href="{{P}}index.html">Back to home <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn-outline" href="{{P}}collections/miniature-frame.html">Shop frames</a>
         </div>
       </div>
     </section>'''
     # Served at the site root; on hosting, configure it as the 404 page.
     page("404.html", title="Page Not Found | Craft by Payal", description="This page could not be found.",
-         body=body, css=("collection.css", "pages.css"), body_class="page-info")
+         body=body, css=("collection.css", "pages.css"), body_class="page-info", root_absolute=True)
+
+
+
+def write_sitemap():
+    """sitemap.xml + robots.txt from every indexable page in site/."""
+    import glob, datetime
+    from shell import ROOT, SITE_URL, NOINDEX, page_url
+    today = datetime.date.today().isoformat()
+    paths = sorted(os.path.relpath(f, ROOT).replace(os.sep, "/") for f in glob.glob(os.path.join(ROOT, "**", "*.html"), recursive=True))
+    urls = [p for p in paths if p not in NOINDEX]
+    xml = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    xml += [f"  <url><loc>{page_url(p)}</loc><lastmod>{today}</lastmod></url>" for p in urls]
+    xml.append("</urlset>")
+    open(os.path.join(ROOT, "sitemap.xml"), "w", encoding="utf-8").write("\n".join(xml) + "\n")
+    # private pages carry <meta name="robots" content="noindex"> instead of a Disallow, so crawlers can see it
+    open(os.path.join(ROOT, "robots.txt"), "w", encoding="utf-8").write(f"User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}/sitemap.xml\n")
 
 
 if __name__ == "__main__":
     wishlist(); workshop(); account(); not_found()
     checkout_pages.build(crumbs)          # checkout + confirmation (no source page to upgrade)
     v2_pages.build(sys.modules[__name__])  # product, cart, about, contact, FAQs, track order, policies
+    write_sitemap()
     print(f"built {len(DATA)} product pages + 16 other pages")

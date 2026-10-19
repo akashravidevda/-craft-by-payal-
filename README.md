@@ -30,6 +30,25 @@ python tools/build_collection.py   # collection page
 python tools/build_pages.py        # product, cart, checkout, info and policy pages
 ```
 
+## Deploy
+
+The site is pre-built static HTML in `site/` — no build step on the host. Pick one:
+
+- **Netlify** — "Add new site → Import from Git", choose this repo. `netlify.toml` already sets the publish folder to `site`.
+- **Vercel** — "Add New → Project", import this repo. `vercel.json` sets the output folder to `site`; leave the framework as "Other".
+- **Cloudflare Pages** — connect the repo, build command empty, output directory `site`.
+
+All three serve `site/404.html` for unknown URLs and apply the security/cache headers (`site/_headers` or `vercel.json`).
+The 404 page uses root-relative links, so serve the site at the domain root (not a sub-folder).
+
+**Before pointing a domain at it**, set the real address in `SITE_URL` in `tools/shell.py` (and the two `og:`/canonical URLs at the top of `site/index.html`), then rebuild — canonical links, social previews, `sitemap.xml` and `robots.txt` all use it.
+
+Check before every deploy (also runs on GitHub on each push):
+
+```bash
+python tools/check_site.py
+```
+
 ## Before launch
 
 - Product photos and catalogue are placeholders linked from a reference store — replace with Craft by Payal's own.

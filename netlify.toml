@@ -1,0 +1,6 @@
+# Netlify: the site is pre-built static HTML — no build step needed.
+[build]
+  publish = "site"
+  command = ""
+
+# Netlify serves site/404.html automatically for unknown URLs; headers live in site/_headers.

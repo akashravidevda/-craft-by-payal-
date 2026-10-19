@@ -18,8 +18,7 @@ EXTRA_SYMBOLS = '''      <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 
       <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5M5 15v4h14v-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
       <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
       <symbol id="i-box" viewBox="0 0 24 24"><path d="M3.5 7.5L12 3.5l8.5 4v9L12 20.5l-8.5-4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.5 7.5L12 11.5l8.5-4M12 11.5v9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
-      <symbol id="doodle-flower" viewBox="0 0 60 60"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="30" cy="22" r="4.5"/><path d="M30 17.5c-2-7 4-9 4-3.5M34.5 22c7-2 9 4 3.5 4M30 26.5c2 7-4 9-4 3.5M25.5 22c-7 2-9-4-3.5-4M33 18.5c5-5 9 0 4 2.5M27 25.5c-5 5-9 0-4-2.5"/><path d="M30 27c0 10-2 18-6 26M27 40c-6-2-10 0-12 4 6 1 10 0 12-4zM28 46c5-3 9-2 12 1-5 2-9 2-12-1z"/></g></symbol>
-'''
+      <symbol id="doodle-flower" viewBox="0 0 60 60"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="30" cy="22" r="4.5"/><path d="M30 17.5c-2-7 4-9 4-3.5M34.5 22c7-2 9 4 3.5 4M30 26.5c2 7-4 9-4 3.5M25.5 22c-7 2-9-4-3.5-4M33 18.5c5-5 9 0 4 2.5M27 25.5c-5 5-9 0-4-2.5"/><path d="M30 27c0 10-2 18-6 26M27 40c-6-2-10 0-12 4 6 1 10 0 12-4zM28 46c5-3 9-2 12 1-5 2-9 2-12-1z"/></g></symbol>\n'''
 
 SKIP = ("http:", "https:", "mailto:", "tel:", "#", "data:", "../", "/", "javascript:")
 
@@ -57,13 +56,20 @@ FONTS = ("https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Co
          "&family=Manrope:wght@400;500;600;700;800&display=swap")
 
 WA_NUMBER = "910000000000"  # TODO: Craft by Payal's real WhatsApp number
+SITE_URL = "https://www.craftbypayal.com"  # TODO: the real domain (no trailing slash) — used for canonical, social and sitemap URLs
+NOINDEX = {"cart.html", "checkout.html", "order-confirmation.html", "wishlist.html", "account.html", "404.html"}
+
+
+def page_url(path):
+    return SITE_URL + "/" + ("" if path == "index.html" else path)
 
 
 def page(path, *, title, description, body, css=(), scripts=(), body_class="", head_extra="", current=None,
-         whatsapp=True, preload=""):
-    """Write a full page to site/<path>. `body` is the <main> inner HTML (may use {P} for the path prefix)."""
+         whatsapp=True, preload="", root_absolute=False):
+    """Write a full page to site/<path>. `body` is the <main> inner HTML (may use {P} for the path prefix).
+    root_absolute=True makes every link start with "/" (for 404.html, which hosts serve at any URL depth)."""
     depth = path.count("/")
-    P = "../" * depth
+    P = "/" if root_absolute else "../" * depth
     c = chrome(P, current)
     css_links = "\n".join(f'  <link rel="stylesheet" href="{P}css/{name}">' for name in ("styles.css", *css))
     js = "\n".join(f'  <script src="{P}js/{name}"></script>' for name in ("catalog.js", "main.js", *scripts))
@@ -71,6 +77,17 @@ def page(path, *, title, description, body, css=(), scripts=(), body_class="", h
   <a class="wa-float" href="https://wa.me/{WA_NUMBER}" target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp">
     <svg aria-hidden="true"><use href="#i-whatsapp"/></svg><span class="wa-float__tip" aria-hidden="true">Need help? Chat with us</span>
   </a>''' if whatsapp else "")
+    if path in NOINDEX:
+        meta = '  <meta name="robots" content="noindex">\n'
+    else:
+        meta = (f'  <link rel="canonical" href="{page_url(path)}">\n'
+                f'  <meta property="og:type" content="website">\n'
+                f'  <meta property="og:site_name" content="Craft by Payal">\n'
+                f'  <meta property="og:title" content="{title}">\n'
+                f'  <meta property="og:description" content="{description}">\n'
+                f'  <meta property="og:url" content="{page_url(path)}">\n'
+                f'  <meta property="og:image" content="{SITE_URL}/assets/og-image.png">\n'
+                f'  <meta name="twitter:card" content="summary_large_image">\n')
     html = f'''<!doctype html>
 <html lang="en-IN">
 <head>
@@ -80,7 +97,7 @@ def page(path, *, title, description, body, css=(), scripts=(), body_class="", h
   <meta name="description" content="{description}">
   <meta name="theme-color" content="#FBF7F0">
   <meta name="author" content="Kaxon (kaxon.in)">
-  <link rel="icon" type="image/svg+xml" href="{P}assets/icon.svg">
+{meta}  <link rel="icon" type="image/svg+xml" href="{P}assets/icon.svg">
   <link rel="icon" type="image/png" sizes="64x64" href="{P}assets/favicon-64.png">
   <link rel="apple-touch-icon" href="{P}assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -107,8 +124,7 @@ def page(path, *, title, description, body, css=(), scripts=(), body_class="", h
 
 {js}
 </body>
-</html>
-'''
+</html>\n'''
     out = os.path.join(ROOT, *path.split("/"))
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w", encoding="utf-8") as f:

@@ -1,0 +1,23 @@
+name: Check site
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Rebuild generated pages
+        run: |
+          python tools/build_collection.py
+          python tools/build_pages.py
+      - name: Generated pages are committed
+        run: git diff --exit-code -- site ':!site/sitemap.xml'
+      - name: Links and deploy files
+        run: python tools/check_site.py
