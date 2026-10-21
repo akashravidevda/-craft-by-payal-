@@ -278,3 +278,12 @@
 .ccard__wish, .ccard .add-btn { z-index: 2; }
 .ccard__name a:focus-visible { outline: none; }
 .ccard:has(.ccard__name a:focus-visible) { outline: 2.5px solid var(--coral-strong); outline-offset: 3px; }
+
+/* phone: product count on its own line, Filter + Sort side by side as two equal halves */
+@media (max-width: 767px) {
+  .toolbar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: stretch; }
+  .toolbar__count { grid-column: 1 / -1; margin: 0; }
+  .toolbar__filter { justify-content: center; width: 100%; min-height: 48px; border-radius: 12px; }
+  .toolbar__sort { margin: 0; width: 100%; min-width: 0; }
+  .toolbar__sort select { width: 100%; min-height: 48px; border-radius: 12px; text-overflow: ellipsis; }
+}
