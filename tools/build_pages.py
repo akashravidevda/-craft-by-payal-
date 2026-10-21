@@ -10,6 +10,7 @@ import html, json, os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from shell import page, WA_NUMBER
 import checkout_pages
+from workshops import WORKSHOPS, FILTERS
 import v2_pages
 
 DATA = json.load(open(os.path.join(os.path.dirname(__file__), "data", "catalog-full.json"), encoding="utf-8"))
@@ -109,6 +110,50 @@ def wishlist():
          body=body, css=("collection.css", "pages.css"), scripts=("wishlist.js",), body_class="page-info")
 
 
+def workshop_cards():
+    from urllib.parse import quote
+    cards = []
+    for w in WORKSHOPS:
+        msg = quote(f"Hi Craft by Payal! I'd like to book: {w['title']} ({w['tag']}). Please share the next dates.")
+        if w["image"]:
+            src = w["image"] if w["image"].startswith("{P}") else w["image"] + "&width=600"
+            media = f'<img src="{src}" width="600" height="440" loading="lazy" alt="{E(w["alt"])}">'
+        else:
+            media = '<span class="wcard__art" aria-hidden="true"><svg><use href="#i-hearts"/></svg><svg class="wcard__art-leaf"><use href="#botanical"/></svg></span>'
+        facts = "".join(f'<li><svg aria-hidden="true"><use href="#{ic}"/></svg>{E(t)}</li>' for ic, t in w["facts"])
+        cards.append(f'''<li class="wcard" data-type="{w['type']}">
+          <div class="wcard__media">{media}<span class="wcard__tag wcard__tag--{w['type']}">{E(w['tag'])}</span></div>
+          <div class="wcard__body">
+            <h3 class="wcard__title">{E(w['title'])}</h3>
+            <p class="wcard__summary">{E(w['summary'])}</p>
+            <ul class="wcard__facts" role="list">{facts}</ul>
+            <p class="wcard__next"><svg aria-hidden="true"><use href="#i-clock"/></svg>{E(w['next'])}</p>
+            <div class="wcard__foot">
+              <p class="wcard__price">{'<small>From</small>' if w['from'] else ''}{inr(w['price'])}</p>
+              <a class="btn btn--coral btn--sm" href="{WA}?text={msg}" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg> Book on WhatsApp</a>
+            </div>
+          </div>
+        </li>''')
+    chips = "".join(f'<button class="wfilter__chip" type="button" data-wfilter="{k}" aria-pressed="{"true" if k == "all" else "false"}">{E(v)}</button>' for k, v in FILTERS)
+    return f'''    <section class="wlist" id="workshops" aria-labelledby="wlist-title">
+      <div class="container">
+        <div class="section-head wlist__head">
+          <div>
+            <p class="eyebrow eyebrow--heart">Upcoming workshops</p>
+            <h2 id="wlist-title" class="h2">Choose Your Workshop</h2>
+            <p class="muted">Join live online, come to the studio, or make one at home with a DIY kit.</p>
+          </div>
+          <div class="wfilter" role="group" aria-label="Filter workshops">{chips}</div>
+        </div>
+        <!-- SAMPLE workshops: edit tools/workshops.py with Payal's real workshops, prices and dates, then rebuild. -->
+        <ul class="wgrid" role="list" data-wgrid>
+        {"".join(cards)}
+        </ul>
+        <p class="wlist__note">Seats are limited in every batch. Tap <strong>Book on WhatsApp</strong> and we'll share the next dates and payment details.</p>
+      </div>
+    </section>'''
+
+
 def workshop():
     learn = [("Tools and materials, explained", "i-scissors"), ("Making tiny furniture by hand", "i-chair"),
              ("Editing and printing photos to scale", "i-image"), ("Assembling your miniature scene", "i-puzzle"),
@@ -121,7 +166,7 @@ def workshop():
           <h1 class="p-head__title ws-title">Turn Your Imagination Into Miniature Magic<svg class="doodle" aria-hidden="true"><use href="#doodle-heart"/></svg><svg class="ws-title__brush" aria-hidden="true"><use href="#brush"/></svg></h1>
           <p class="p-head__lede">A hands-on workshop where you build your own personalised miniature frame — from the first tiny chair to the final fairy light — with step-by-step guidance and all materials included.</p>
           <div class="ws-hero__cta">
-            <a class="btn btn--coral" href="{WA}?text=Hi%2C%20I%27d%20like%20to%20know%20about%20the%20next%20miniature%20frame%20workshop." target="_blank" rel="noopener">Ask about next batch <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+            <a class="btn btn--coral" href="#workshops">See workshops <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
             <a class="link-arrow" href="#learn">What you'll learn <span class="circle"><svg aria-hidden="true"><use href="#i-arrow"/></svg></span></a>
           </div>
         </div>
@@ -137,6 +182,8 @@ def workshop():
         </figure>
       </div>
     </section>
+
+{workshop_cards()}
 
     <section class="section" id="learn" aria-labelledby="learn-title">
       <div class="container learn">
@@ -169,8 +216,9 @@ def workshop():
         <a class="btn btn--coral" href="{WA}?text=Hi%2C%20please%20share%20the%20next%20workshop%20dates." target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg> Enquire on WhatsApp</a>
       </div>
     </section>'''
-    simple("workshop.html", "Miniature Frame Workshop | Craft by Payal",
-           "Learn to make your own personalised miniature frame in a hands-on workshop with Craft by Payal.", body, current="Workshop")
+    simple("workshop.html", "Workshops | Craft by Payal",
+           "Online, in-person and DIY-kit workshops to make your own personalised miniature frame with Craft by Payal.", body,
+           current="Workshop", scripts=("workshops.js",))
 
 
 def account():
