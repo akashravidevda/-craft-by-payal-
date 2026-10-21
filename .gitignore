@@ -13,3 +13,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Working list of photos to replace (contains third-party photos)
+image-replacements/

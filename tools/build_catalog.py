@@ -11,6 +11,7 @@ SRC = f"https://craftingtale.com/collections/{HANDLE}/products.json?limit=250"
 OUT = os.path.join(os.path.dirname(__file__), "..", "site", "js", "catalog.js")
 FULL = os.path.join(os.path.dirname(__file__), "data", "catalog-full.json")  # gallery + variants, used by build_pages.py
 # Reference-store info graphics (size charts, upload instructions with their contact details) — never show these.
+PLACEHOLDER = "/assets/images/photo-coming-soon.png?v=1"  # root-absolute so it works from any page depth
 EXCLUDE = set(json.load(open(os.path.join(os.path.dirname(__file__), "data", "exclude-images.json"))))
 
 SMALL = {"of", "the", "and", "a", "to", "for", "in", "on", "cum"}
@@ -82,6 +83,8 @@ def main():
         t = p["title"].lower()
         prices = [float(v["price"]) for v in p["variants"]]
         photos = [im["src"] for im in p["images"][:10] if im["src"].split("?")[0] not in EXCLUDE]  # first 10 were screened
+        if not photos:  # every photo was excluded — show a branded placeholder until a real photo is added
+            photos = [PLACEHOLDER]
         imgs = photos[:2]
         name = nice_title(p["title"])
         items.append({
