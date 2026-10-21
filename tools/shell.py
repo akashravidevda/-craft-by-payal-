@@ -55,7 +55,7 @@ def chrome(prefix="", current=None):
 FONTS = ("https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600"
          "&family=Manrope:wght@400;500;600;700;800&display=swap")
 
-WA_NUMBER = "910000000000"  # TODO: Craft by Payal's real WhatsApp number
+WA_NUMBER = "918390617338"  # TODO: Craft by Payal's real WhatsApp number
 SITE_URL = "https://www.craftbypayal.com"  # TODO: the real domain (no trailing slash) — used for canonical, social and sitemap URLs
 NOINDEX = {"cart.html", "checkout.html", "order-confirmation.html", "wishlist.html", "account.html", "404.html"}
 

@@ -362,7 +362,7 @@ FAQ_CATS = [
     ]),
     ("i-hearts", "Workshops", [
         ("Do I need any experience?", "None at all — every step is guided and all materials are provided."),
-        ("When is the next workshop?", 'Workshops are coming soon! Message us on <a href="https://wa.me/910000000000" target="_blank" rel="noopener">WhatsApp</a> and we\'ll let you know as soon as dates are out.'),
+        ("When is the next workshop?", 'Workshops are coming soon! Message us on <a href="https://wa.me/918390617338" target="_blank" rel="noopener">WhatsApp</a> and we\'ll let you know as soon as dates are out.'),
     ]),
 ]
 

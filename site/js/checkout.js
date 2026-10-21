@@ -8,7 +8,7 @@
   if (!CBP) return;
   const inr = CBP.inr;
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const WA = 'https://wa.me/910000000000'; // TODO: Craft by Payal's real WhatsApp number (also in tools/shell.py)
+  const WA = 'https://wa.me/918390617338'; // TODO: Craft by Payal's real WhatsApp number (also in tools/shell.py)
   const session = {
     get(k) { try { return JSON.parse(sessionStorage.getItem(k)); } catch { return null; } },
     set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } }

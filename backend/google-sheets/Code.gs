@@ -14,6 +14,7 @@ var SHOP_NAME = 'Craft by Payal';
 var SEND_STATUS_EMAILS = true;           // email the customer when you change their order's status
 var ID_PREFIX = 'CBP-';                  // order numbers look like CBP-1001, CBP-1002, …
 var FIRST_ORDER_NUMBER = 1001;
+var OWNER_PASSWORD = 'craftbypayal2025'; // change this to your own secret password
 
 var STATUSES = ['Pending payment', 'Placed', 'Photos received', 'Preview sent', 'Approved',
                 'Handcrafting', 'Dispatched', 'Delivered', 'Cancelled'];
@@ -71,13 +72,42 @@ function setup() {
   SpreadsheetApp.getUi && ss.toast('Order book is ready. Now deploy it as a web app.', SHOP_NAME, 8);
 }
 
-// ------------------------------------------------------------------ website → new order (POST)
+// ------------------------------------------------------------------ website → new order (POST) + owner update status (POST)
 function doPost(e) {
   var lock = LockService.getScriptLock();
   try {
     lock.waitLock(20000);
     var body = JSON.parse(e.postData.contents || '{}');
     if (body.action === 'paid') return json_(markPaid_(body));
+
+    // Owner dashboard — update status
+    if (body.action === 'updateStatus') {
+      if (body.pw !== OWNER_PASSWORD) return json_({ ok: false, error: 'Unauthorized' });
+      var sh = sheet_();
+      var last = sh.getLastRow();
+      if (last < 2) return json_({ ok: false, error: 'No orders' });
+      var ids = sh.getRange(2, col_('Order ID'), last - 1, 1).getValues();
+      var rowIdx = -1;
+      for (var i = 0; i < ids.length; i++) {
+        if (String(ids[i][0]).toUpperCase() === String(body.id || '').toUpperCase()) { rowIdx = i + 2; break; }
+      }
+      if (rowIdx < 0) return json_({ ok: false, error: 'Order not found' });
+      if (STATUSES.indexOf(body.status) < 0) return json_({ ok: false, error: 'Invalid status' });
+      sh.getRange(rowIdx, col_('Status')).setValue(body.status);
+      sh.getRange(rowIdx, col_('Status updated')).setValue(new Date());
+      // Send email if enabled
+      if (SEND_STATUS_EMAILS) {
+        var email = sh.getRange(rowIdx, col_('Email')).getValue();
+        var name = String(sh.getRange(rowIdx, col_('Name')).getValue()).split(' ')[0];
+        var extra = '';
+        if (body.status === 'Dispatched') { var t = sh.getRange(rowIdx, col_('Tracking link')).getValue(); if (t) extra = '\n\nTrack your parcel: ' + t; }
+        if (body.status === 'Preview sent') { var pv = sh.getRange(rowIdx, col_('Preview link')).getValue(); if (pv) extra = '\n\nSee your design preview: ' + pv; }
+        if (email) MailApp.sendEmail({ to: email, subject: SHOP_NAME + ' — order ' + body.id + ': ' + body.status,
+          body: 'Hi ' + name + ',\n\nYour order ' + body.id + ' is now: ' + body.status + '.' + extra + '\n\nThank you for choosing ' + SHOP_NAME + ' 💛' });
+      }
+      return json_({ ok: true });
+    }
+
     var o = body.order || {};
     var err = validate_(o);
     if (err) return json_({ ok: false, error: err });
@@ -122,9 +152,28 @@ function markPaid_(body) {
   return { ok: true };
 }
 
-// ------------------------------------------------------------------ website → track order (GET)
+// ------------------------------------------------------------------ website → track order (GET) + owner list (GET)
 function doGet(e) {
   var p = (e && e.parameter) || {};
+
+  // Owner dashboard — list all orders
+  if (p.action === 'listOrders') {
+    if (p.pw !== OWNER_PASSWORD) return json_({ ok: false, error: 'Unauthorized' });
+    var sh = sheet_();
+    var last = sh.getLastRow();
+    if (last < 2) return json_({ ok: true, orders: [], statuses: STATUSES });
+    var vals = sh.getRange(2, 1, last - 1, COLUMNS.length).getValues();
+    var orders = vals.map(function (v) {
+      var get = function (c) { return v[COLUMNS.indexOf(c)]; };
+      return {
+        id: get('Order ID'), name: String(get('Name') || ''), status: get('Status'),
+        placed: fmt_(get('Placed at')), updated: fmt_(get('Status updated')),
+        total: get('Total (₹)'), items: String(get('Items') || '').split('\n').length
+      };
+    }).filter(function (o) { return o.id; }).reverse();
+    return json_({ ok: true, orders: orders, statuses: STATUSES });
+  }
+
   if (p.action !== 'track') return json_({ ok: true, shop: SHOP_NAME });
   var r = findRow_(p.id, p.phone);
   if (!r) return json_({ ok: false, error: 'not_found' });

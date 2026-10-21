@@ -5,7 +5,7 @@
 (() => {
   'use strict';
 
-  const WA = 'https://wa.me/910000000000'; // TODO: Craft by Payal's real WhatsApp number (also in tools/shell.py)
+  const WA = 'https://wa.me/918390617338'; // TODO: Craft by Payal's real WhatsApp number (also in tools/shell.py)
   const API = (window.CBP_CONFIG || {}).ORDER_API || '';
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
