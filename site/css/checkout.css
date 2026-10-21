@@ -256,3 +256,24 @@
    and show the whole product instead of cropping landscape frames to a square */
 .osum__items { padding: 8px 8px 4px 2px; margin: -8px -8px 0 -2px; }
 .osum__img img { object-fit: contain; background: #F7EFE7; border: 1px solid #EFE4DB; }
+
+/* "What happens next" on phones: a vertical timeline instead of a cramped 2x2 grid */
+@media (max-width: 767px) {
+  .co-card__top { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .co-card__script { font-size: 19px; }
+  .journey { grid-template-columns: 1fr !important; gap: 0 !important; margin-top: 14px; padding: 0 !important; justify-items: stretch !important; }
+  .journey li {
+    display: grid; grid-template-columns: 52px 1fr; column-gap: 16px; row-gap: 2px;
+    text-align: left; justify-items: start; align-items: center; padding-bottom: 22px; position: relative;
+  }
+  .journey li:last-child { padding-bottom: 0; }
+  .journey li > svg { grid-row: 1 / span 2; align-self: start; width: 52px !important; height: 52px !important; padding: 14px !important; margin: 0 !important; z-index: 1; }
+  .journey li:first-child > svg { box-shadow: 0 0 0 4px #fff, 0 0 0 5px #9CCBB2; }
+  /* dotted connector between steps */
+  .journey li:not(:last-child)::after {
+    content: ""; position: absolute; left: 25px; top: 56px; bottom: 2px; width: 2px;
+    background: repeating-linear-gradient(180deg, #EBC9C0 0 6px, transparent 6px 11px);
+  }
+  .journey strong { font-size: 19px !important; margin: 4px 0 0 !important; align-self: end; }
+  .journey li > span { align-self: start; font-size: 14px; }
+}
