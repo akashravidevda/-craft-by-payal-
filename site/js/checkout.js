@@ -199,6 +199,20 @@
       location.href = 'order-confirmation.html';
     }
 
+    // ---- Google Sheet order book (see js/config.js) ----
+    const API = (window.CBP_CONFIG || {}).ORDER_API || '';
+    async function callApi(payload) {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 20000);
+      try {
+        // text/plain keeps this a "simple" request, so Google's web app accepts it without a CORS preflight
+        const r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload), signal: ctrl.signal });
+        return await r.json();
+      } catch { return { ok: false, error: 'network' }; }
+      finally { clearTimeout(t); }
+    }
+    const busy = (on, label) => { placeBtn.disabled = on; placeBtn.firstChild.textContent = on ? label : 'Place order '; };
+
     const placeBtn = $('[data-place-order]');
     form.addEventListener('submit', async e => {
       e.preventDefault();
@@ -214,14 +228,28 @@
       }
       box.hidden = true;
       const order = makeOrder();
+      if (API) {
+        busy(true, 'Placing your order… ');
+        const saved = await callApi({ action: 'create', order });
+        busy(false);
+        if (!saved.ok) {
+          box.hidden = false;
+          box.innerHTML = '<strong>We couldn\'t place your order just now.</strong> Please check your connection and try again — or send it to us on WhatsApp from the payment options below.';
+          box.scrollIntoView({ block: 'center' });
+          return;
+        }
+        order.id = saved.id;          // short number from the order book, e.g. CBP-1024
+        order.saved = true;
+      }
       if (order.payment === 'whatsapp') { finish(order); return; }
-      placeBtn.disabled = true;
-      placeBtn.firstChild.textContent = 'Opening secure payment… ';
+      busy(true, 'Opening secure payment… ');
       const res = await PAYMENT.start(order);
-      placeBtn.disabled = false;
-      placeBtn.firstChild.textContent = 'Place order ';
-      if (res.ok) { order.status = 'paid'; order.paymentRef = res.ref; order.demo = PAYMENT.mode === 'demo'; finish(order); }
-      else CBP.toast('Payment cancelled — your cart is saved.');
+      busy(false);
+      if (res.ok) {
+        order.status = 'paid'; order.paymentRef = res.ref; order.demo = PAYMENT.mode === 'demo';
+        if (API) await callApi({ action: 'paid', id: order.id, phone: order.customer.phone, ref: res.ref });
+        finish(order);
+      } else CBP.toast('Payment cancelled — your cart is saved.');
     });
     $('[data-co-errors]').addEventListener('click', e => {
       const a = e.target.closest('[data-goto]');

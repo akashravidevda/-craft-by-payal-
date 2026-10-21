@@ -49,6 +49,12 @@ Check before every deploy (also runs on GitHub on each push):
 python tools/check_site.py
 ```
 
+## Orders (Google Sheet)
+
+Orders are saved to a Google Sheet that works as the owner's dashboard, and the Track Order page shows each order's live status.
+Set it up once by following [backend/google-sheets/SETUP.md](backend/google-sheets/SETUP.md), then paste the web-app URL into `site/js/config.js`.
+Until then, orders reach you only through WhatsApp.
+
 ## Before launch
 
 - Product photos and catalogue are placeholders linked from a reference store — replace with Craft by Payal's own.

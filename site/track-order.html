@@ -174,11 +174,12 @@
         <form class="v2track__card" data-track novalidate>
           <label class="field v2ifield"><span>Order number</span>
             <span class="v2ifield__wrap"><svg aria-hidden="true"><use href="#i-box"/></svg><input name="order" type="text" placeholder="e.g. CBP261018-4821" required></span></label>
-          <label class="field v2ifield"><span>Email or phone number</span>
-            <span class="v2ifield__wrap"><svg aria-hidden="true"><use href="#i-user"/></svg><input name="phone" type="text" autocomplete="tel" placeholder="you@example.com or 98765 43210" required></span></label>
-          <p class="field-hint">Use the email or phone number from your order.</p>
+          <label class="field v2ifield"><span>Mobile number</span>
+            <span class="v2ifield__wrap"><svg aria-hidden="true"><use href="#i-user"/></svg><input name="phone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="98765 43210" required></span></label>
+          <p class="field-hint">Use the mobile number you gave when ordering.</p>
           <button class="btn v2btn-dark btn--block" type="submit">Track my order <svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
           <p class="form-status" role="status" aria-live="polite" data-form-status></p>
+          <div class="trk" data-track-result hidden></div>
           <ul class="v2track__perks" role="list">
             <li><svg aria-hidden="true"><use href="#i-shield"/></svg>Private lookup</li>
             <li><svg aria-hidden="true"><use href="#i-whatsapp"/></svg>Update on WhatsApp</li>
@@ -284,6 +285,7 @@
 
   <script src="js/catalog.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/config.js"></script>
   <script src="js/forms.js"></script>
 </body>
 </html>

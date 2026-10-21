@@ -404,3 +404,24 @@
   .crumbs li:last-child span { display: block; max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .crumbs ol { overflow-x: clip; }
 }
+
+/* ---------- Track order: live status ---------- */
+.trk { border: 1px solid #EEE1D6; border-radius: 14px; padding: 20px; background: #FFFBF7; display: grid; gap: 6px; }
+.trk__hello { font-size: 14px; color: var(--text-2); }
+.trk__status { font: 600 30px/1.1 var(--f-display); }
+.trk__status--on { color: var(--coral-ink); }
+.trk__status--off { color: var(--muted); }
+.trk__date { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.trk__note { font-size: 14px; color: var(--text-2); }
+.trk__steps { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 0; }
+.trk__steps li { position: relative; display: flex; align-items: center; gap: 12px; padding: 7px 0; font-size: 14.5px; color: var(--muted); }
+.trk__steps li span { width: 28px; height: 28px; flex: 0 0 28px; border-radius: 50%; display: grid; place-items: center; font: 700 12px var(--f-body); border: 1.5px solid var(--border); background: #fff; position: relative; z-index: 1; }
+.trk__steps li:not(:last-child)::after { content: ""; position: absolute; left: 13px; top: 34px; bottom: -6px; width: 2px; background: var(--border); }
+.trk__steps li.done { color: var(--ink); }
+.trk__steps li.done span { background: #E5F3EC; border-color: #9CCBB2; color: #2B7F68; }
+.trk__steps li.done::after { background: #9CCBB2; }
+.trk__steps li.now { color: var(--ink); font-weight: 700; }
+.trk__steps li.now span { background: var(--coral-strong); border-color: var(--coral-strong); color: #fff; box-shadow: 0 0 0 4px #FFE3DE; }
+.trk__links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+.trk__links:empty { display: none; }
+.form-status a { color: inherit; text-decoration: underline; }

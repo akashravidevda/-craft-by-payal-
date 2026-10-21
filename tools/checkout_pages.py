@@ -132,7 +132,7 @@ def checkout_page(crumbs):
       </div>
     </div>'''
     page("checkout.html", title="Checkout | Craft by Payal", description="Complete your Craft by Payal order.",
-         body=body, css=CSS, scripts=("checkout.js",), body_class="page-info page-checkout", whatsapp=False)
+         body=body, css=CSS, scripts=("config.js", "checkout.js"), body_class="page-info page-checkout", whatsapp=False)
 
 
 def confirmation_page():
@@ -180,7 +180,7 @@ def confirmation_page():
       </div>
     </section>'''
     page("order-confirmation.html", title="Order Confirmed | Craft by Payal", description="Your Craft by Payal order confirmation.",
-         body=body, css=CSS, scripts=("checkout.js",), body_class="page-info page-checkout")
+         body=body, css=CSS, scripts=("config.js", "checkout.js"), body_class="page-info page-checkout")
 
 
 def build(crumbs):

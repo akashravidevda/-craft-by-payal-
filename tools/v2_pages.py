@@ -213,7 +213,7 @@ def cart_page():
       </div>
     </section>'''
     B.page("cart.html", title="Your Cart | Craft by Payal", description="Review the frames in your cart.",
-           body=body, css=("collection.css", "pages.css", "checkout.css", "v2.css"), scripts=("checkout.js",),
+           body=body, css=("collection.css", "pages.css", "checkout.css", "v2.css"), scripts=("config.js", "checkout.js"),
            body_class="page-info page-checkout", whatsapp=False)
 
 
@@ -334,7 +334,7 @@ def contact():
     </section>'''
     B.page("contact.html", title="Contact Us | Craft by Payal",
            description="Get in touch with Craft by Payal about custom miniature frames, orders and workshops.",
-           body=body, css=("collection.css", "pages.css", "v2.css"), scripts=("forms.js",), body_class="page-info")
+           body=body, css=("collection.css", "pages.css", "v2.css"), scripts=("config.js", "forms.js"), body_class="page-info")
 
 
 # ------------------------------------------------------------------ FAQs
@@ -430,11 +430,12 @@ def track():
         <form class="v2track__card" data-track novalidate>
           <label class="field v2ifield"><span>Order number</span>
             <span class="v2ifield__wrap"><svg aria-hidden="true"><use href="#i-box"/></svg><input name="order" type="text" placeholder="e.g. CBP261018-4821" required></span></label>
-          <label class="field v2ifield"><span>Email or phone number</span>
-            <span class="v2ifield__wrap"><svg aria-hidden="true"><use href="#i-user"/></svg><input name="phone" type="text" autocomplete="tel" placeholder="you@example.com or 98765 43210" required></span></label>
-          <p class="field-hint">Use the email or phone number from your order.</p>
+          <label class="field v2ifield"><span>Mobile number</span>
+            <span class="v2ifield__wrap"><svg aria-hidden="true"><use href="#i-user"/></svg><input name="phone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="98765 43210" required></span></label>
+          <p class="field-hint">Use the mobile number you gave when ordering.</p>
           <button class="btn v2btn-dark btn--block" type="submit">Track my order <svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
           <p class="form-status" role="status" aria-live="polite" data-form-status></p>
+          <div class="trk" data-track-result hidden></div>
           <ul class="v2track__perks" role="list">
             <li><svg aria-hidden="true"><use href="#i-shield"/></svg>Private lookup</li>
             <li><svg aria-hidden="true"><use href="#i-whatsapp"/></svg>Update on WhatsApp</li>
@@ -444,7 +445,7 @@ def track():
       </div>
     </section>'''
     B.page("track-order.html", title="Track Your Order | Craft by Payal", description="Get an update on your Craft by Payal order.",
-           body=body, css=("collection.css", "pages.css", "v2.css"), scripts=("forms.js",), body_class="page-info")
+           body=body, css=("collection.css", "pages.css", "v2.css"), scripts=("config.js", "forms.js"), body_class="page-info")
 
 
 # ------------------------------------------------------------------ policies
