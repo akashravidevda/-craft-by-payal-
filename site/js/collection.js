@@ -79,6 +79,7 @@
       box.innerHTML = facetValues(k).map((v, i) => {
         const n = pool.filter(p => FACETS[k].get(p).includes(v)).length;
         const on = state[k].includes(v);
+        if (!n && !on) return '';            // nothing matches with the current filters: hide the option
         const id = `f-${k}-${i}`;
         if (k === 'light') {
           return `<label class="fchip" for="${id}"><input id="${id}" type="checkbox" name="${k}" value="${esc(v)}" ${on ? 'checked' : ''} ${!n && !on ? 'disabled' : ''}>
@@ -87,6 +88,9 @@
         return `<label class="fopt" for="${id}"><input id="${id}" type="checkbox" name="${k}" value="${esc(v)}" ${on ? 'checked' : ''} ${!n && !on ? 'disabled' : ''}>
           <span>${esc(v)} <em>(${n})</em></span></label>`;
       }).join('');
+      // hide the whole group when none of its options apply
+      const group = box.closest('.fgroup');
+      if (group) group.hidden = !box.children.length;
     }
     // price
     const lo = $('[data-price-min]'), hi = $('[data-price-max]');
