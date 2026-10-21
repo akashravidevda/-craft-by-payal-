@@ -4,5 +4,5 @@ window.CBP_CONFIG = {
   // Looks like: https://script.google.com/macros/s/XXXXXXXX/exec
   // Leave empty to run without it: orders then only reach you through WhatsApp,
   // and Track Order sends a WhatsApp message instead of showing a live status.
-  ORDER_API: ''
+  ORDER_API: 'https://script.google.com/macros/s/AKfycbzt9Vu9bu3ee8LdkwDicAcUL9AOCwX9f2CJJPgVUTlbpkAMU6nywn2ueZX_3SEPaCQ_Jg/exec'
 };
