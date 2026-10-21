@@ -251,3 +251,8 @@
   .done__head > .done__art { position: static; transform: none; width: 150px; height: 150px; margin: -8px auto 2px; display: block; opacity: 1; }
   .done__head > .done__flower { display: none; }
 }
+
+/* order-summary thumbnails: room for the quantity badge (the list scrolls, which clips overflow)
+   and show the whole product instead of cropping landscape frames to a square */
+.osum__items { padding: 8px 8px 4px 2px; margin: -8px -8px 0 -2px; }
+.osum__img img { object-fit: contain; background: #F7EFE7; border: 1px solid #EFE4DB; }
