@@ -351,58 +351,6 @@ h1, h2, h3, p, figure { margin: 0; }
   .values__panel li:nth-child(3) { border-left: 0; }
 }
 
-/* ---------- Workshop ---------- */
-.workshop { background: #FFF1E3; position: relative; overflow: hidden; padding: 0; }
-.workshop__grid { display: grid; grid-template-columns: 55fr 45fr; align-items: center; gap: 40px; min-height: 480px; }
-.workshop__media { position: relative; align-self: stretch; min-height: 480px; }
-.workshop__photo {
-  position: absolute; left: 40%; right: -3%; top: 0; bottom: 0;
-  overflow: hidden;
-}
-.workshop__photo img {
-  width: 84%; height: 100%; margin: 0 auto; object-fit: cover; object-position: 50% 58%;
-  /* soft edges on the photo itself so it melts into the band */
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16%, #000 84%, transparent 100%);
-          mask-image: linear-gradient(90deg, transparent 0, #000 16%, #000 84%, transparent 100%);
-}
-.polaroid {
-  position: absolute; z-index: 2; width: 180px; padding: 10px 10px 8px; background: #fff;
-  box-shadow: 0 16px 34px rgba(57, 39, 30, .16);
-}
-.polaroid img { aspect-ratio: 1.1; object-fit: cover; width: 100%; }
-.polaroid figcaption { font: 600 21px/1 var(--f-hand); text-align: center; padding-top: 8px; color: var(--ink); }
-.polaroid::before {
-  content: ""; position: absolute; top: -11px; left: 50%; width: 64px; height: 22px; transform: translateX(-50%) rotate(3deg);
-  background: rgba(247, 210, 184, .85);
-}
-.polaroid--a { left: 2%; top: 9%; transform: rotate(-5deg); }
-.polaroid--b { left: 6%; top: 50%; transform: rotate(3deg); }
-.workshop__scribble {
-  position: absolute; z-index: 2; left: 29%; top: 12%;
-  font: 600 22px/1.02 var(--f-hand); color: #6B4E3D; text-align: center; transform: rotate(-8deg);
-}
-.workshop__copy { padding: 56px 0; max-width: 470px; position: relative; z-index: 2; }
-.workshop__copy p:not(.eyebrow) { color: var(--text-2); margin: 18px 0 30px; }
-.workshop__sprig { position: absolute; width: 130px; height: 170px; left: -34px; bottom: -40px; color: var(--leaf); transform: rotate(-24deg); }
-
-@media (max-width: 1199px) {
-  .polaroid { width: 150px; }
-  .workshop__scribble { left: 27%; font-size: 19px; }
-}
-@media (max-width: 899px) {
-  .workshop__grid { grid-template-columns: 1fr; gap: 0; min-height: 0; }
-  .workshop__media { min-height: 0; aspect-ratio: 1 / .92; margin: 0 calc(var(--gutter) * -1); }
-  .workshop__photo { left: 30%; right: 0; }
-  .workshop__photo img { width: 100%; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 18%); mask-image: linear-gradient(90deg, transparent 0, #000 18%); }
-  .polaroid { width: 132px; padding: 7px 7px 6px; }
-  .polaroid figcaption { font-size: 17px; padding-top: 5px; }
-  .polaroid--a { left: 5%; top: 8%; }
-  .polaroid--b { left: 9%; top: 52%; }
-  .workshop__scribble { display: none; }
-  .workshop__copy { padding: 30px 0 56px; max-width: none; }
-  .workshop__sprig { display: none; }
-}
-
 /* ---------- Collection cards ---------- */
 .collections { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
 .col-card { display: block; border-radius: var(--r-md); overflow: hidden; background: var(--white); box-shadow: var(--sh-card); transition: transform var(--t) var(--ease), box-shadow var(--t); }
@@ -731,7 +679,6 @@ body.lock { overflow: hidden; }
 /* Tablet single-column: keep stacked visuals from getting too tall */
 @media (min-width: 600px) and (max-width: 899px) {
   .hero__visual { aspect-ratio: 16 / 10.5; }
-  .workshop__media { aspect-ratio: 16 / 10; }
   .polaroid { width: 160px; }
 }
 
