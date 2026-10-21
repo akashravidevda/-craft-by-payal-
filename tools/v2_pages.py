@@ -243,7 +243,7 @@ def about():
       <ul class="container v2values__grid" role="list">
         <li><svg aria-hidden="true"><use href="#i-heart-lg"/></svg><p><strong>100% handmade</strong><span>Every piece, by hand</span></p></li>
         <li><svg aria-hidden="true"><use href="#i-gift"/></svg><p><strong>Made just for you</strong><span>Your photos &amp; story</span></p></li>
-        <li><svg aria-hidden="true"><use href="#i-truck"/></svg><p><strong>Packed with care</strong><span>Safe, gift-ready packaging</span></p></li>
+        <li><svg aria-hidden="true"><use href="#i-pencil"/></svg><p><strong>Workshops</strong><span>Coming soon</span></p></li>
       </ul>
     </section>
 
@@ -254,7 +254,7 @@ def about():
           <h2 id="maker-title" class="v2h2 v2h2--line">Hi, I'm Payal</h2>
           <!-- TODO: replace with Payal's own words — how the studio started, what she loves about making, years of experience. -->
           <p>Craft by Payal began with a simple idea: the little things in our lives deserve a place to live. Every frame starts with your photos and stories, and is built piece by piece — tiny furniture, little books, fairy lights — until it feels like home.</p>
-          <p>Each piece is crafted with love, care and attention to detail, because handmade gifts have the power to make ordinary moments extraordinary.</p>
+          <p>Alongside custom orders, I run hands-on workshops where you can learn to make a miniature frame of your own. Each piece is crafted with love, care and attention to detail, because handmade gifts have the power to make ordinary moments extraordinary.</p>
         </div>
       </div>
     </section>
@@ -271,6 +271,16 @@ def about():
           </ul>
         </div>
         <figure class="v2polaroid v2polaroid--right"><img src="{B.img(photo3, 700)}" width="700" height="700" loading="lazy" alt="A white frame with tiny gold photo frames like a gallery wall"></figure>
+      </div>
+    </section>
+
+    <section class="v2band" aria-labelledby="ws-title">
+      <div class="v2band__img"><img src="{maker}" srcset="{maker_set}" sizes="(min-width: 900px) 45vw, 100vw" width="1000" height="1500" loading="lazy" alt=""></div>
+      <div class="v2band__copy">
+        <p class="v2eyebrow v2eyebrow--light">Workshops · coming soon</p>
+        <h2 id="ws-title" class="v2band__title">Come create with me</h2>
+        <p>Connect with art and craft, explore your creativity and enjoy some me-time. Join a session, learn step by step, and take home something truly special.</p>
+        <a class="btn v2btn-light" href="{B.WA}?text=Hi%20Craft%20by%20Payal%21%20Please%20let%20me%20know%20when%20your%20miniature%20frame%20workshops%20start." target="_blank" rel="noopener">Get notified <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
       </div>
     </section>
 
@@ -298,7 +308,7 @@ def contact():
         <div class="v2contact__copy">
           <p class="v2eyebrow">Contact us</p>
           <h1 class="v2contact__title">Let's create something <em>beautiful</em> together.</h1>
-          <p class="v2contact__lede">Whether it's a custom gift, a question or a simple hello — we'd love to hear from you.</p>
+          <p class="v2contact__lede">Whether it's a custom gift, a workshop or a simple hello — we'd love to hear from you.</p>
           <ul class="v2contact__list" role="list">
             <li><span><svg aria-hidden="true"><use href="#i-mail"/></svg></span><div><a href="mailto:{B.EMAIL}"><strong>Email us</strong></a><p>{B.EMAIL}</p></div></li>
             <li><span><svg aria-hidden="true"><use href="#i-whatsapp"/></svg></span><div><a href="{B.WA}" target="_blank" rel="noopener"><strong>WhatsApp us</strong></a><p>The quickest way to reach us — photos welcome.</p></div></li>
@@ -314,7 +324,7 @@ def contact():
           </div>
           <label class="field"><span>Phone number</span><input name="phone" type="tel" autocomplete="tel" placeholder="Phone number"></label>
           <label class="field"><span>What's it about?</span>
-            <select name="topic"><option>A custom frame idea</option><option>A question about a product</option><option>An existing order</option><option>Something else</option></select></label>
+            <select name="topic"><option>A custom frame idea</option><option>A question about a product</option><option>An existing order</option><option>Workshops</option><option>Something else</option></select></label>
           <label class="field"><span>Tell us what you have in mind</span><textarea name="message" rows="4" placeholder="Tell us what you have in mind" required></textarea></label>
           <button class="btn btn--coral btn--block" type="submit">Send message <svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
           <p class="form-note">This opens WhatsApp with your message ready to send.</p>
@@ -323,7 +333,7 @@ def contact():
       </div>
     </section>'''
     B.page("contact.html", title="Contact Us | Craft by Payal",
-           description="Get in touch with Craft by Payal about custom miniature frames and orders.",
+           description="Get in touch with Craft by Payal about custom miniature frames, orders and workshops.",
            body=body, css=("collection.css", "pages.css", "v2.css"), scripts=("forms.js",), body_class="page-info")
 
 
@@ -349,6 +359,10 @@ FAQ_CATS = [
     ("i-box", "Returns & care", [
         ("Can I return a personalised frame?", 'Because each piece is made just for you, personalised items can\'t be returned. If something arrives damaged, contact us right away — see <a href="{P}refund-policy.html">Returns &amp; Refunds</a>.'),
         ("How do I care for my frame?", "Keep it out of direct sunlight and away from moisture, and dust gently with a soft dry brush."),
+    ]),
+    ("i-hearts", "Workshops", [
+        ("Do I need any experience?", "None at all — every step is guided and all materials are provided."),
+        ("When is the next workshop?", 'Workshops are coming soon! Message us on <a href="https://wa.me/910000000000" target="_blank" rel="noopener">WhatsApp</a> and we\'ll let you know as soon as dates are out.'),
     ]),
 ]
 
