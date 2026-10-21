@@ -182,8 +182,9 @@ h1, h2, h3, p, figure { margin: 0; }
 }
 .menu a { display: flex; min-height: 40px; padding: 0 12px; border-radius: 10px; font-weight: 500; }
 .menu a:hover { background: var(--surface-soft); color: var(--coral-ink); }
-.has-menu:hover .menu, .has-menu:focus-within .menu, .has-menu.open .menu { opacity: 1; visibility: visible; transform: none; }
-.has-menu:hover button svg, .has-menu.open button svg { transform: rotate(180deg); }
+/* open only while hovered, or while a keyboard user tabs inside it (mouse clicks don't count as focus-visible) */
+.has-menu:hover .menu, .has-menu:has(:focus-visible) .menu, .has-menu.open .menu { opacity: 1; visibility: visible; transform: none; }
+.has-menu:hover button svg, .has-menu.open button svg, .has-menu:has(:focus-visible) button svg { transform: rotate(180deg); }
 .nav__actions { display: flex; gap: 2px; margin-right: -10px; }
 
 .search { border-top: 1px solid var(--border); background: var(--surface); }

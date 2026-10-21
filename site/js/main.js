@@ -223,9 +223,15 @@
       b.setAttribute('aria-expanded', open);
     });
     m.addEventListener('mouseenter', () => b.setAttribute('aria-expanded', 'true'));
-    m.addEventListener('mouseleave', () => { if (!m.classList.contains('open')) b.setAttribute('aria-expanded', 'false'); });
+    // leaving the menu with the pointer always closes it (and drops any click focus so it can't stay open)
+    m.addEventListener('mouseleave', () => {
+      m.classList.remove('open');
+      b.setAttribute('aria-expanded', 'false');
+      if (m.contains(document.activeElement) && !document.activeElement.matches(':focus-visible')) document.activeElement.blur();
+    });
   });
   document.addEventListener('click', e => { if (!e.target.closest('.has-menu')) closeMenus(); });
+  menus.forEach(m => m.addEventListener('focusout', e => { if (!m.contains(e.relatedTarget)) closeMenus(); }));
 
   /* ---------- Search ---------- */
   const search = $('[data-search]');
