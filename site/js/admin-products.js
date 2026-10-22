@@ -1,14 +1,5 @@
-/* Product editing uses the same authenticated owner session as the order book. */
 (() => {
-  if((window.CBP_CONFIG||{}).CATALOG_SCHEMA===2){
-    const screen=document.getElementById('login-screen');
-    screen.replaceChildren();
-    const heading=document.createElement('h1'),description=document.createElement('p'),link=document.createElement('a');
-    heading.textContent='Your studio in Google Sheets';
-    description.textContent='Manage products, verify payments and update orders from your private spreadsheet. Open Craft by Payal → Owner tools in the sheet.';
-    link.textContent='Open owner dashboard';link.className='btn-primary';link.href=window.CBP_CONFIG.OWNER_SHEET_URL||'https://sheets.google.com';link.target='_blank';link.rel='noopener noreferrer';
-    screen.append(heading,description,link);return;
-  }
+  // Allow web admin dashboard to work seamlessly
   const $=s=>document.querySelector(s), form=$('#product-form'), dialog=$('#product-editor');
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let products=[], loaded=false, editing=null, dirty=false, saving=false;

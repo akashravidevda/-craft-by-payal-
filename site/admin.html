@@ -254,9 +254,12 @@ async function handleLogin(e){
   btn.disabled=true;btn.textContent='Signing in…';
   try{
     var r=await fetch(API+'?action=listOrders&pw='+encodeURIComponent(pw),{signal:AbortSignal.timeout(15000)}),d=await r.json();
-    if(!d.ok)throw Error('Incorrect password. Please try again.');
+    if(!d.ok){
+      if(d.error==='Unauthorized')throw Error('Incorrect password. Please try again.');
+      throw Error(d.error||'Could not connect to backend.');
+    }
     OWNER_PW=pw;sessionStorage.setItem('cbp_owner_password',pw);sessionStorage.setItem('cbp_admin','1');showDashboard();
-  }catch(x){error.textContent=x.message==='Incorrect password. Please try again.'?x.message:'Could not sign in. Check your connection and try again.';error.style.display='block';}
+  }catch(x){error.textContent=x.message||'Could not sign in. Check your connection and try again.';error.style.display='block';}
   finally{btn.disabled=false;btn.textContent='Sign in';}
   return false;
 }
@@ -367,7 +370,7 @@ function showToast(msg,type){
 }
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-if((window.CBP_CONFIG||{}).CATALOG_SCHEMA!==2&&sessionStorage.getItem('cbp_admin')==='1'&&OWNER_PW)showDashboard();
+if(sessionStorage.getItem('cbp_admin')==='1'&&OWNER_PW)showDashboard();
 </script>
 <script src="js/admin-products.js"></script>
 </body>
