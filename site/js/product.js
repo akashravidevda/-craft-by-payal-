@@ -1,4 +1,5 @@
-(() => {
+(async () => {
+  await window.CBP_READY;
   'use strict';
 
   const $ = (s, el = document) => el.querySelector(s);
@@ -50,8 +51,8 @@
     if (values.length < 2 && !(key === 'size' && values.length === 1)) return;
     box.hidden = false;
     $('.opt__list', box).innerHTML = values.map((v, i) => `
-      <label class="opt__pill"><input type="radio" name="${key}" value="${v}" ${v === pick[key] ? 'checked' : ''}>
-        <span>${key === 'light' ? '<svg aria-hidden="true"><use href="#i-bulb"/></svg>' : ''}${v}</span></label>`).join('');
+      <label class="opt__pill"><input type="radio" name="${key}" value="${String(v).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}" ${v === pick[key] ? 'checked' : ''}>
+        <span>${key === 'light' ? '<svg aria-hidden="true"><use href="#i-bulb"/></svg>' : ''}${String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;")}</span></label>`).join('');
   }
   buildOpts('size', sizes);
   buildOpts('light', lights);
@@ -72,6 +73,7 @@
       r.disabled = !ok;
     });
     addBtn.disabled = !v.available;
+    const buyButton=$('[data-buy-now]');if(buyButton)buyButton.disabled=!v.available;
     addBtn.firstChild.textContent = v.available ? 'Add to cart ' : 'Out of stock ';
   }
   $('[data-pdp-form]').addEventListener('change', e => {
@@ -92,12 +94,13 @@
   form.addEventListener('submit', e => {
     e.preventDefault();
     const vi = variantIndex();
+    if(!V[vi].available)return;
     const f = new FormData(form);
     const bits = [];
     if (f.get('names')) bits.push(`Names: ${f.get('names').trim()}`);
     if (f.get('date')) bits.push(`Date: ${new Date(f.get('date')).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`);
     if (f.get('message')) bits.push(`Note: ${f.get('message').trim()}`);
-    CBP.addToCart(`${P.id}::${vi}`, qty, bits.join(' · '));
+    CBP.addToCart(`${P.id}::${V[vi].id||vi}`, qty, bits.join(' · '));
     $('[data-pdp-status]').textContent = `Added ${qty} × ${P.name} to your cart.`;
     if (buyNow) { location.href = '../checkout.html'; return; }
     CBP.openCart();

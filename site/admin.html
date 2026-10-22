@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
   <style>
     :root {
       --bg:#FBF7F1; --surface:#FFFDF9; --surface-soft:#F8EEE7; --hero-bg:#FFF9F2;
@@ -127,6 +128,7 @@
     @media(max-width:900px){main{padding:20px;}.site-header{padding:0 20px;}#search-input{width:180px;}.action-cell{flex-wrap:wrap;}.status-select{min-width:130px;}td,thead th{padding:12px 12px;}}
     @media(max-width:600px){.toolbar{gap:6px;}#search-input{width:100%;}.search-wrap{margin-left:0;width:100%;}.login-card{padding:36px 24px;}table{font-size:13px;}}
   </style>
+  <link rel="stylesheet" href="css/admin.css" />
 </head>
 <body>
 
@@ -135,8 +137,9 @@
     <svg class="login-deco" viewBox="0 0 40 36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M20 32C9 25 3.5 18.5 4.2 11.8 5 5 13.2 2.8 18 9.3c.8 1 1.5 2.2 2 3.4.6-1.3 1.4-2.6 2.4-3.6 5.4-6 13.4-3 13.3 3.6-.1 6.3-6.6 12.4-15.8 18.6"/>
     </svg>
-    <h1 class="login-title">Craft by Payal</h1>
-    <p class="login-sub">Owner Dashboard</p>
+    <a class="login-logo" href="index.html"><img src="assets/logo.svg" alt="Craft by Payal home" width="180" height="74"></a>
+    <h1 class="login-title">Welcome to your studio</h1>
+    <p class="login-sub">A little care behind every order.</p>
     <form id="login-form" onsubmit="return handleLogin(event)">
       <label class="field-label" for="pw-input">Password</label>
       <input type="password" id="pw-input" class="field-input" placeholder="Enter your owner password" autocomplete="current-password" />
@@ -145,14 +148,19 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
       </button>
     </form>
+    <a class="back-store" href="index.html">&larr; Back to the shop</a>
     <div id="login-error" role="alert">Incorrect password. Please try again.</div>
   </div>
 </div>
 
+<a class="skip-link" href="#orders-main">Skip to orders</a>
 <div id="dashboard">
+  <div class="studio-band">Made with love. Managed with care. <span aria-hidden="true">♡</span></div>
   <header class="site-header">
-    <span class="header-logo">Craft <span>by</span> Payal</span>
+    <a class="header-logo" href="index.html" aria-label="Craft by Payal home"><img src="assets/logo.svg" alt="Craft by Payal" width="160" height="66"></a>
+    <span class="studio-label">The owner’s studio</span>
     <div class="header-actions">
+      <a class="btn-ghost shop-link" href="index.html">Visit shop &nearr;</a>
       <button id="refresh-btn" class="btn-outline" onclick="loadOrders()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
         Refresh
@@ -160,18 +168,25 @@
       <button class="btn-ghost" onclick="logout()">Sign out</button>
     </div>
   </header>
-  <main>
-    <div class="page-title">
-      <h1>Orders</h1>
-      <p>Manage and update customer orders from here.</p>
-    </div>
+  <nav class="studio-tabs" aria-label="Studio sections"><button type="button" class="active" data-section="orders" aria-pressed="true">Order book</button><button type="button" data-section="products" aria-pressed="false">Products</button></nav>
+  <main id="orders-main">
+    <div id="orders-section">
+    <section class="studio-hero" aria-labelledby="orders-heading">
+      <div class="page-title">
+        <p class="studio-eyebrow">Craft by Payal · Owner dashboard</p>
+        <h1 id="orders-heading">Little gifts.<br><em>Beautifully organised.</em></h1>
+        <p>From the first photo to the final parcel, give every order a little care.</p>
+      </div>
+      <div class="studio-note" aria-hidden="true"><span>made by hand,</span><span>managed with heart</span><svg viewBox="0 0 40 36" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 32C9 25 3.5 18.5 4.2 11.8 5 5 13.2 2.8 18 9.3l2 3.4 2.4-3.6c5.4-6 13.4-3 13.3 3.6-.1 6.3-6.6 12.4-15.8 18.6"/></svg></div>
+    </section>
     <div class="stats-row">
       <div class="stat-card"><div class="stat-label">Total Orders</div><div class="stat-value" id="stat-total">&#8212;</div></div>
       <div class="stat-card"><div class="stat-label">Open Orders</div><div class="stat-value stat-accent" id="stat-open">&#8212;</div></div>
       <div class="stat-card"><div class="stat-label">Dispatched</div><div class="stat-value" id="stat-dispatched">&#8212;</div></div>
       <div class="stat-card"><div class="stat-label">Delivered</div><div class="stat-value" id="stat-delivered">&#8212;</div></div>
     </div>
-    <div class="toolbar">
+    <div class="orders-heading"><div><p class="studio-eyebrow">Your order book</p><h2>Every gift starts here</h2></div><p>Track, prepare &amp; send with love.</p></div>
+    <div class="toolbar" role="group" aria-label="Filter orders">
       <button class="filter-pill active" onclick="setFilter('all',this)">All</button>
       <button class="filter-pill" onclick="setFilter('open',this)">Open</button>
       <button class="filter-pill" onclick="setFilter('Dispatched',this)">Dispatched</button>
@@ -179,14 +194,14 @@
       <button class="filter-pill" onclick="setFilter('Cancelled',this)">Cancelled</button>
       <div class="search-wrap">
         <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5" stroke-linecap="round"/></svg>
-        <input id="search-input" type="search" placeholder="Order ID or name&#8230;" oninput="renderTable()" />
+        <input id="search-input" aria-label="Search by order ID or customer name" type="search" placeholder="Order ID or name&#8230;" oninput="renderTable()" />
       </div>
     </div>
-    <div class="table-card">
+    <div class="table-card" role="region" aria-label="Customer orders" tabindex="0">
       <div id="loading-state"><div class="loading-deco"></div><p>Loading orders&#8230;</p></div>
       <div id="empty-state" class="empty-state">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
-        <p>No orders found</p>
+        <h3>No orders found</h3><p>New orders will appear here. Try another filter or customer name.</p>
       </div>
       <table id="orders-table" style="display:none">
         <thead><tr>
@@ -195,29 +210,61 @@
         <tbody id="orders-body"></tbody>
       </table>
     </div>
+    </div>
+    <section id="products-section" hidden aria-labelledby="products-title">
+      <div class="product-heading"><div><p class="studio-eyebrow">Your handmade collection</p><h1 id="products-title">The gift shelf</h1><p>Add a new creation or give an existing one a little care.</p></div><button type="button" class="save-btn" id="new-product">+ Add product</button></div>
+      <p id="product-feedback" role="status" aria-live="polite"></p>
+      <div class="product-tools"><label for="product-search">Find a product</label><input id="product-search" type="search" placeholder="Search name or product ID"><button type="button" class="btn-outline" id="reload-products">Reload products</button><span id="product-count"></span></div>
+      <div id="product-list" class="owner-products"></div>
+      <dialog id="product-editor" aria-labelledby="editor-title">
+        <form id="product-form">
+          <div class="editor-head"><div><p class="studio-eyebrow">Made by you</p><h2 id="editor-title">Add a product</h2></div><button type="button" id="close-editor" class="btn-ghost" aria-label="Close product editor">Close &times;</button></div>
+          <div class="editor-grid"><div>
+            <label class="editor-field">Product name<input name="name" required maxlength="150"></label>
+            <label class="editor-field">Product ID<input name="id" required pattern="[a-z0-9]+(-[a-z0-9]+)*" maxlength="100" placeholder="my-handmade-frame"><small>Unique lowercase words separated by hyphens. Fixed after saving.</small></label>
+            <label class="editor-field">Description<textarea name="description" rows="4" maxlength="5000" required></textarea></label>
+            <label class="editor-field">Photo links<textarea name="images" rows="4" required placeholder="https://… (one link per line)"></textarea><small>One to eight public HTTPS image links. The first photo is the cover.</small></label>
+            <label class="editor-field">Occasions<input name="occasion" placeholder="Birthday, Anniversary"><small>Separate with commas.</small></label>
+            <label class="editor-field">Themes<input name="theme" placeholder="Family, Couple"></label>
+          </div><aside class="editor-preview"><p class="studio-eyebrow">Cover preview</p><img id="product-preview" alt="Product cover preview" hidden><p id="preview-placeholder">Your cover photo will appear here.</p><h3 id="preview-name">Your next little creation</h3><p id="preview-price"></p><label class="editor-check"><input type="checkbox" name="visible" checked> Show in the shop</label><label class="editor-check"><input type="checkbox" name="featured"> Feature on the home page</label><small>Hidden products stay in your dashboard. Stock is set for each variant below.</small></aside></div>
+          <fieldset class="variant-fieldset"><legend>Sizes, lighting &amp; prices</legend><p>Add one row for each combination. Use “Standard” if there are no options.</p><div id="variant-rows"></div><button type="button" class="btn-outline" id="add-variant">+ Add variant</button></fieldset>
+          <p id="editor-error" role="alert"></p><div class="editor-foot"><button type="button" class="btn-outline" id="cancel-product">Cancel</button><button type="submit" class="save-btn" id="save-product">Save product</button></div>
+        </form>
+      </dialog>
+    </section>
+    <footer class="studio-footer"><span>Craft by Payal</span> Little things. Lasting memories.</footer>
   </main>
 </div>
 
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script src="js/config.js"></script>
+<script src="js/catalog.js"></script>
+<script src="js/products.js"></script>
 <script>
 var API=(window.CBP_CONFIG||{}).ORDER_API||'';
-var OWNER_PW=(window.CBP_CONFIG||{}).OWNER_PASSWORD||'';
+var OWNER_PW=sessionStorage.getItem('cbp_owner_password')||'';
 var allOrders=[],allStatuses=[],currentFilter='all';
 
-function handleLogin(e){
+async function handleLogin(e){
   e.preventDefault();
-  var pw=document.getElementById('pw-input').value.trim();
-  if(pw===OWNER_PW&&OWNER_PW){sessionStorage.setItem('cbp_admin','1');showDashboard();}
-  else{document.getElementById('login-error').style.display='block';document.getElementById('pw-input').value='';}
+  var pw=document.getElementById('pw-input').value;
+  var error=document.getElementById('login-error'),btn=e.target.querySelector('button');
+  if(!API){error.textContent='Connect the order service before signing in.';error.style.display='block';return false;}
+  btn.disabled=true;btn.textContent='Signing in…';
+  try{
+    var r=await fetch(API+'?action=listOrders&pw='+encodeURIComponent(pw),{signal:AbortSignal.timeout(15000)}),d=await r.json();
+    if(!d.ok)throw Error('Incorrect password. Please try again.');
+    OWNER_PW=pw;sessionStorage.setItem('cbp_owner_password',pw);sessionStorage.setItem('cbp_admin','1');showDashboard();
+  }catch(x){error.textContent=x.message==='Incorrect password. Please try again.'?x.message:'Could not sign in. Check your connection and try again.';error.style.display='block';}
+  finally{btn.disabled=false;btn.textContent='Sign in';}
   return false;
 }
 function showDashboard(){document.getElementById('login-screen').style.display='none';document.getElementById('dashboard').style.display='block';loadOrders();}
-function logout(){sessionStorage.removeItem('cbp_admin');location.reload();}
+function logout(){sessionStorage.removeItem('cbp_admin');sessionStorage.removeItem('cbp_owner_password');location.reload();}
 
 function loadOrders(){
-  if(!API){showToast('ORDER_API not set','err');return;}
+  if(!API){document.getElementById('loading-state').innerHTML='<p>Connect your order service to see customer orders here.</p>';showToast('Order service is not configured','err');return;}
   document.getElementById('loading-state').style.display='block';
   document.getElementById('orders-table').style.display='none';
   document.getElementById('empty-state').style.display='none';
@@ -276,9 +323,10 @@ function renderTable(){
       '<td><span class="date-cell">'+esc(o.placed)+'</span></td>'+
       '<td>'+badge(o.status)+'</td>'+
       '<td><div class="action-cell">'+
-        '<select id="'+sid+'" class="status-select">'+opts+'</select>'+
-        '<button id="'+bid+'" class="save-btn" onclick="saveStatus(\''+esc(o.id)+'\',\''+sid+'\',\''+bid+'\')">Save</button>'+
+        '<select onchange="this.nextElementSibling.disabled=this.value===this.dataset.original" data-original="'+esc(o.status)+'" aria-label="Status for '+esc(o.id)+'" id="'+sid+'" class="status-select">'+opts+'</select>'+
+        '<button disabled id="'+bid+'" class="save-btn" onclick="saveStatus(\''+esc(o.id)+'\',\''+sid+'\',\''+bid+'\')">Save</button>'+
       '</div></td>';
+    ['Order ID','Customer','Items','Total','Placed','Status','Update status'].forEach(function(label,i){tr.children[i].setAttribute('data-label',label);});
     tbody.appendChild(tr);
   });
 }
@@ -292,20 +340,23 @@ function badge(s){return'<span class="badge '+(BADGE[s]||'')+'">'+esc(s)+'</span
 
 function saveStatus(id,sid,bid){
   var sel=document.getElementById(sid),btn=document.getElementById(bid);
-  btn.disabled=true;btn.textContent='...';btn.className='save-btn saving';
+  var nextStatus=sel.value;
+  if(nextStatus===sel.dataset.original)return;
+  sel.disabled=true;btn.disabled=true;btn.textContent='Saving…';btn.className='save-btn saving';
   fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify({action:'updateStatus',pw:OWNER_PW,id:id,status:sel.value})})
+    body:JSON.stringify({action:'updateStatus',pw:OWNER_PW,id:id,status:nextStatus})})
   .then(function(r){return r.json();})
   .then(function(d){
     if(d.ok){
+      sel.dataset.original=nextStatus;
       btn.textContent='Saved';btn.className='save-btn saved';
       var o=allOrders.find(function(x){return x.id===id;});
-      if(o){o.status=sel.value;updateStats();}
+      if(o){o.status=nextStatus;updateStats();}
       showToast('Status updated for '+id,'ok');
-      setTimeout(function(){btn.disabled=false;btn.textContent='Save';btn.className='save-btn';renderTable();},2000);
-    }else{btn.disabled=false;btn.textContent='Save';btn.className='save-btn';showToast(d.error||'Update failed','err');}
+      setTimeout(function(){renderTable();},2000);
+    }else{sel.disabled=false;btn.disabled=false;btn.textContent='Save';btn.className='save-btn';showToast(d.error||'Update failed','err');}
   })
-  .catch(function(){btn.disabled=false;btn.textContent='Save';btn.className='save-btn';showToast('Network error','err');});
+  .catch(function(){sel.disabled=false;btn.disabled=false;btn.textContent='Save';btn.className='save-btn';showToast('Network error','err');});
 }
 
 var toastTimer;
@@ -316,7 +367,8 @@ function showToast(msg,type){
 }
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-if(sessionStorage.getItem('cbp_admin')==='1')showDashboard();
+if((window.CBP_CONFIG||{}).CATALOG_SCHEMA!==2&&sessionStorage.getItem('cbp_admin')==='1'&&OWNER_PW)showDashboard();
 </script>
+<script src="js/admin-products.js"></script>
 </body>
 </html>

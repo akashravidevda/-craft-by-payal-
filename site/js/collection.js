@@ -1,4 +1,5 @@
-(() => {
+(async () => {
+  await window.CBP_READY;
   'use strict';
 
   const $ = (s, el = document) => el.querySelector(s);
@@ -14,8 +15,8 @@
     size: { label: 'Size', get: p => p.size, sort: (a, b) => parseInt(a) - parseInt(b) || parseInt(a.split('×')[1]) - parseInt(b.split('×')[1]) },
     light: { label: 'Lighting', get: p => p.light, order: ['With light', 'Without light'] }
   };
-  const PRICE_MIN = Math.floor(Math.min(...ALL.map(p => p.price)) / 50) * 50;
-  const PRICE_MAX = Math.ceil(Math.max(...ALL.map(p => p.price)) / 50) * 50;
+  const PRICE_MIN = Math.floor((ALL.length?Math.min(...ALL.map(p => p.price)):0) / 50) * 50;
+  const PRICE_MAX = Math.ceil((ALL.length?Math.max(...ALL.map(p => p.price)):50) / 50) * 50;
 
   /* ---------- State <-> URL ---------- */
   function readState() {
@@ -100,7 +101,7 @@
   }
   function paintPrice() {
     const lo = +$('[data-price-min]').value, hi = +$('[data-price-max]').value;
-    const pct = v => ((v - PRICE_MIN) / (PRICE_MAX - PRICE_MIN)) * 100;
+    const pct = v => ((v - PRICE_MIN) / Math.max(50, PRICE_MAX - PRICE_MIN)) * 100;
     const fill = $('[data-price-fill]');
     fill.style.left = pct(lo) + '%';
     fill.style.right = (100 - pct(hi)) + '%';
@@ -111,14 +112,14 @@
   }
 
   /* ---------- Cards ---------- */
-  const img = (src, w) => `${src}&width=${w}`;
+  const img = (src, w) => window.CBP_IMAGE(src,w);
   function card(p, i) {
     const wished = CBP.isWished(p.id);
     const eager = i < 4 && state.page === 1;
     const sizes = p.size.length ? `<span>${p.size.length > 1 ? p.size.length + ' sizes' : p.size[0]}</span>` : '';
     const light = p.light.includes('With light') ? `<span class="m-light"><svg aria-hidden="true"><use href="#i-bulb"/></svg>Light option</span>` : '';
     return `<li class="ccard">
-      <a class="ccard__media" href="../products/${p.id}.html" tabindex="-1" aria-hidden="true">
+      <a class="ccard__media" href="${window.CBP_PRODUCT_URL(p,"../")}" tabindex="-1" aria-hidden="true">
         ${p.isNew ? '<span class="ccard__badge">New</span>' : ''}
         <img src="${img(p.image, 400)}" srcset="${img(p.image, 300)} 300w, ${img(p.image, 400)} 400w, ${img(p.image, 600)} 600w"
              sizes="(min-width: 1200px) 230px, (min-width: 768px) 30vw, 46vw" width="400" height="448"
@@ -128,7 +129,7 @@
       <button class="ccard__wish" type="button" data-wish="${p.id}" aria-pressed="${wished}"
               aria-label="${wished ? 'Remove' : 'Add'} ${esc(p.name)} ${wished ? 'from' : 'to'} wishlist"><svg aria-hidden="true"><use href="#i-heart"/></svg></button>
       <div class="ccard__body">
-        <h3 class="ccard__name"><a href="../products/${p.id}.html">${esc(p.name)}</a></h3>
+        <h3 class="ccard__name"><a href="${window.CBP_PRODUCT_URL(p,"../")}">${esc(p.name)}</a></h3>
         <p class="ccard__meta">${sizes}${light}</p>
         <div class="ccard__foot">
           <p class="ccard__price">${p.priceFrom ? '<small>From</small>' : ''}<span class="visually-hidden">Price </span>${CBP.inr(p.price)}</p>

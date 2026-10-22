@@ -65,3 +65,18 @@ You need a Google account. Use one that only the business owner controls.
 - To stop status emails, set `SEND_STATUS_EMAILS = false` at the top of `Code.gs`.
 - Customers can only see an order's **status** — and only if they know both the order number and the mobile number. Names, addresses and prices never leave the sheet.
 - Prices in the sheet come from the customer's browser. Until online payment is connected properly, check the total before you start work.
+
+## Owner product dashboard
+
+Open `admin.html`, sign in with the `OWNER_PASSWORD` set in Apps Script, and choose **Products**. Search existing products, choose **Edit product**, or use **Add product**. You can edit the name, description, public image links, occasions, themes, size/lighting variants, prices and stock. **Show in the shop** controls visibility; **Feature on the home page** adds the product to favourites. Saving writes to the shared Products sheet, not the browser. The product ID is fixed after creation.
+
+### Enable products on an existing deployment
+
+1. Replace the Apps Script source with the updated `Code.gs` and save.
+2. Choose **Deploy → Manage deployments → Edit → Version: New version → Deploy**. Keep the same web-app URL. Do **not** rerun `setup()` on an existing order book: it resets the order counter.
+3. Deploy the updated `site/` files. The Products sheet is created automatically when first used.
+4. Open the owner dashboard, sign in, add a test product, refresh the collection, open its details and test add-to-cart. Hide the test product afterwards.
+
+Sign-in is validated by the backend. The password is no longer published in `config.js`; the signed-in tab keeps it in session storage until sign-out. Change the old default password in Apps Script when deploying. Use public direct HTTPS image links (one per line, up to eight); this version does not upload image files. New products use `products/item.html?id=product-id`. Existing product URLs continue to work and show saved edits. Bundled products are retained as a fallback when the catalogue service is unavailable. Hidden-product records are public so browsers can suppress bundled copies; keep private notes out of product descriptions.
+
+The editor detects conflicting saves from another session. After a conflict, close the editor, reload products and apply the changes again. Variant rows use positional cart identifiers: avoid reordering variants while customers have active carts.

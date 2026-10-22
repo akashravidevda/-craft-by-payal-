@@ -44,6 +44,23 @@
   if (!track) return;
   if (!API) { wire(track, trackMsg); return; }
 
+  // Production tracking uses a secret from the URL fragment, never a public order number.
+  const link=new URLSearchParams(location.hash.slice(1));
+  if(link.get('orderId')&&link.get('token')){
+    const out=track.querySelector('[data-track-result]'),status=track.querySelector('[data-form-status]');
+    const button=track.querySelector('button[type="submit"]');button.disabled=true;
+    const payload={action:'trackSecure',orderId:link.get('orderId'),token:link.get('token')};
+    const check=async()=>{status.textContent='Checking your order…';try{
+      const response=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload),signal:AbortSignal.timeout(20000)});
+      const result=await response.json();if(!result.ok)throw Error(result.error||'Could not check the order.');
+      out.hidden=false;out.replaceChildren();
+      const heading=document.createElement('h2');heading.textContent='Order '+result.id;out.append(heading);
+      ['status','payment','delivery'].forEach(key=>{const p=document.createElement('p');p.textContent=result[key]||'';out.append(p);});
+      if(/^https:\/\/[^\s<>"']+$/.test(result.tracking||'')){const a=document.createElement('a');a.href=result.tracking;a.textContent='Track your parcel';a.rel='noopener noreferrer';a.target='_blank';out.append(a);}
+      status.textContent='';
+    }catch(error){status.textContent=error.message;}finally{button.disabled=false;button.textContent='Refresh order status';}};
+    track.addEventListener('submit',event=>{event.preventDefault();check();});check();return;
+  }
   // ---- live status from the order book
   const STEPS = ['Placed', 'Photos received', 'Preview sent', 'Approved', 'Handcrafting', 'Dispatched', 'Delivered'];
   const out = track.querySelector('[data-track-result]');

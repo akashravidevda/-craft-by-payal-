@@ -72,7 +72,7 @@ def page(path, *, title, description, body, css=(), scripts=(), body_class="", h
     P = "/" if root_absolute else "../" * depth
     c = chrome(P, current)
     css_links = "\n".join(f'  <link rel="stylesheet" href="{P}css/{name}">' for name in ("styles.css", *css))
-    js = "\n".join(f'  <script src="{P}js/{name}"></script>' for name in ("catalog.js", "main.js", *scripts))
+    js = "\n".join(f'  <script src="{P}js/{name}"></script>' for name in ("catalog.js", "config.js", "catalog-live.js", "main.js", *(s for s in scripts if s != "config.js")))
     wa = (f'''
   <a class="wa-float" href="https://wa.me/{WA_NUMBER}" target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp">
     <svg aria-hidden="true"><use href="#i-whatsapp"/></svg><span class="wa-float__tip" aria-hidden="true">Need help? Chat with us</span>

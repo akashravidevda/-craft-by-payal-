@@ -61,3 +61,11 @@ Until then, orders reach you only through WhatsApp.
 - WhatsApp number (`tools/shell.py`, `site/js/forms.js`, `site/js/checkout.js`) and email are dummies.
 - Policy pages contain `[bracketed]` items to confirm.
 - Online payment runs in demo mode — connect a payment gateway (see `site/js/checkout.js`).
+
+## Owner catalogue management
+
+The owner dashboard at `site/admin.html` includes **Order book** and **Products** tabs. Products supports adding and editing items, photo links, descriptions, variants, prices, stock, shop visibility and home-page favourites. Deploy the updated Apps Script backend to enable shared product saves; see [product dashboard setup](backend/google-sheets/SETUP.md#owner-product-dashboard). No browser-only product storage is used.
+
+## Sheets production backend (staging implementation)
+
+The readable-table backend and cart/checkout reliability changes are documented in [PRODUCTION.md](backend/google-sheets/PRODUCTION.md). Build its paste-ready Apps Script package with `node tools/build_apps_script.cjs`. The frontend expects the schema-2 published catalogue: verify the staging backend before releasing those website files. No live migration is automatic. Guest checkout and owner-verified UPI are the intended initial release; customer accounts and gateway payments are disabled.

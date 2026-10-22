@@ -1,14 +1,16 @@
-(() => {
+window.CBP_READY = (async () => {
+  await window.CBP_CATALOG_READY;
   'use strict';
 
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const products = window.CBP_PRODUCTS || [];          // homepage favourites
   const catalog = window.CBP_CATALOG || [];             // full catalogue (shared across pages)
   const byId = Object.fromEntries([...catalog, ...products].map(p => [p.id, p]));
   const inr = n => '₹' + n.toLocaleString('en-IN');
-  const FREE_SHIP = 999;
-  const SHIP_FEE = 99; // TODO: confirm Craft by Payal's shipping fee for orders under ₹999
+  const FREE_SHIP = window.CBP_SHIPPING?.freeAbove ?? 999;
+  const SHIP_FEE = window.CBP_SHIPPING?.fee ?? 99; // TODO: confirm Craft by Payal's shipping fee for orders under ₹999
 
   const store = {
     get(key, fallback) {
@@ -23,15 +25,21 @@
   let cart = store.get('cbp-cart', {});   // { key: qty }
   let notes = store.get('cbp-notes', {}); // { key: personalisation summary }
   let wish = new Set(store.get('cbp-wish', []));
+  let snapshots=store.get('cbp-cart-snapshots',{});
   const line = key => {
-    const [id, vi] = key.split('::');
-    const p = byId[id];
-    if (!p) return null;
-    const v = vi !== undefined && p.variants ? p.variants[+vi] : null;
-    return { key, id, p, price: v ? v.price : p.price, variant: v ? [v.size, v.light].filter(Boolean).join(' · ') : '' };
+    const [id, variantKey] = key.split('::');
+    const p=byId[id],saved=snapshots[key];
+    const v=p?.variants ? (variantKey===undefined?p.variants.find(v=>v.available):
+      (p.variants.find(v=>v.id===(saved?.variantId||variantKey))||(/^\d+$/.test(variantKey)?p.variants.find(v=>v.id===id+'-v'+variantKey)||(!p.variants.some(v=>v.id)?p.variants[+variantKey]:null):null))):null;
+    // A missing catalogue record is not permission to delete a customer's cart.
+    if(!p || (variantKey!==undefined&&!v)){
+      const fallback=saved?.p||{id,name:'Gift awaiting product details',image:new URL('../assets/og-image.png',document.querySelector('script[src$="main.js"]').src).href,price:0,managed:true};
+      return {key,id,p:fallback,price:saved?.price||0,variant:saved?.variant||'',variantId:saved?.variantId||'',unresolved:true};
+    }
+    const item={key,id,p,price:v?v.price:p.price,variant:v?[v.size,v.light].filter(Boolean).join(' · '):'',variantId:v?.id||'',unresolved:false};
+    snapshots[key]={p:{id:p.id,name:p.name,image:p.image,price:item.price,managed:p.managed},price:item.price,variant:item.variant,variantId:item.variantId};
+    return item;
   };
-  Object.keys(cart).forEach(k => { if (!line(k)) { delete cart[k]; delete notes[k]; } });
-
   const yearEl = $('[data-year]');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
@@ -61,25 +69,25 @@
     const list = $('[data-products]');
     if (!list || !products.length) return;
     list.innerHTML = products.map(p => {
-      const w = src => `${p.image}&width=${src}`;
+      const w = src => window.CBP_IMAGE(p.image,src);
       const pressed = wish.has(p.id);
       return `
       <li class="product">
-        <a class="product__media" href="products/${p.id}.html" tabindex="-1" aria-hidden="true">
+        <a class="product__media" href="${window.CBP_PRODUCT_URL(p)}" tabindex="-1" aria-hidden="true">
           <img loading="lazy" width="400" height="400" src="${w(400)}" srcset="${w(300)} 300w, ${w(400)} 400w, ${w(600)} 600w"
-               sizes="(min-width: 1200px) 250px, (min-width: 768px) 30vw, 46vw" alt="${p.alt}">
+               sizes="(min-width: 1200px) 250px, (min-width: 768px) 30vw, 46vw" alt="${esc(p.alt)}">
         </a>
         <button class="product__wish" type="button" data-wish="${p.id}" aria-pressed="${pressed}"
-                aria-label="${pressed ? 'Remove' : 'Add'} ${p.name} ${pressed ? 'from' : 'to'} wishlist">
+                aria-label="${pressed ? 'Remove' : 'Add'} ${esc(p.name)} ${pressed ? 'from' : 'to'} wishlist">
           <svg aria-hidden="true"><use href="#i-heart"/></svg>
         </button>
         <div class="product__body">
-          <h3 class="product__name"><a href="products/${p.id}.html">${p.name}</a></h3>
-          <p class="product__rating">${stars(p.rating)}<span><span class="visually-hidden">Rated ${p.rating} out of 5, </span>(${p.reviews}<span class="visually-hidden"> reviews</span>)</span></p>
+          <h3 class="product__name"><a href="${window.CBP_PRODUCT_URL(p)}">${esc(p.name)}</a></h3>
+          ${p.reviews ? `<p class="product__rating">${stars(p.rating)}<span><span class="visually-hidden">Rated ${p.rating} out of 5, </span>(${p.reviews}<span class="visually-hidden"> reviews</span>)</span></p>` : ''}
           ${p.inStock ? '' : '<p class="stock">Out of stock</p>'}
           <div class="product__foot">
             <p class="price"><span class="visually-hidden">Price </span>${inr(p.price)}${p.compareAt ? `<s><span class="visually-hidden">was </span>${inr(p.compareAt)}</s>` : ''}</p>
-            <button class="add-btn" type="button" data-add="${p.id}" aria-label="Add ${p.name} to cart" ${p.inStock ? '' : 'disabled'}>
+            <button class="add-btn" type="button" data-add="${p.id}" aria-label="Add ${esc(p.name)} to cart" ${p.inStock ? '' : 'disabled'}>
               <svg aria-hidden="true"><use href="#i-cart"/></svg>
             </button>
           </div>
@@ -102,7 +110,7 @@
     const on = !wish.has(id);
     on ? wish.add(id) : wish.delete(id);
     btn.setAttribute('aria-pressed', on);
-    btn.setAttribute('aria-label', `${on ? 'Remove' : 'Add'} ${p.name} ${on ? 'from' : 'to'} wishlist`);
+    btn.setAttribute('aria-label', `${on ? 'Remove' : 'Add'} ${esc(p.name)} ${on ? 'from' : 'to'} wishlist`);
     btn.classList.remove('pulse'); void btn.offsetWidth; btn.classList.add('pulse');
     syncWish(); bump(wishCount);
     toast(on ? 'Saved to your wishlist' : 'Removed from wishlist');
@@ -155,6 +163,8 @@
     cartListeners.forEach(fn => fn());
     store.set('cbp-notes', notes);
     const lines = Object.keys(cart).map(line).filter(Boolean);
+    snapshots=Object.fromEntries(Object.entries(snapshots).filter(([key])=>cart[key]));
+    store.set('cbp-cart-snapshots',snapshots);
     const count = lines.reduce((n, l) => n + cart[l.key], 0);
     const total = lines.reduce((n, l) => n + cart[l.key] * l.price, 0);
     cartCount.textContent = count;
@@ -167,7 +177,7 @@
       : `Add ${inr(FREE_SHIP - total)} more for free shipping (otherwise ${inr(SHIP_FEE)})`;
     const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     $('[data-cart-items]').innerHTML = lines.map(({ key, p, price, variant }) => `<li class="cart-item">
-        <img src="${p.image}&width=160" alt="" width="76" height="76">
+        <img src="${window.CBP_IMAGE(p.image,160)}" alt="" width="76" height="76">
         <div>
           <p class="cart-item__name">${esc(p.name)}</p>
           ${variant ? `<p class="cart-item__variant">${esc(variant)}</p>` : ''}
@@ -185,14 +195,17 @@
   document.addEventListener('click', e => {
     const add = e.target.closest('[data-add]');
     if (add) {
-      const id = add.dataset.add;
+      let id = add.dataset.add;
+      const quick=byId[id]?.variants?.find(v=>v.available);
+      if(quick?.id)id+='::'+quick.id;
+      if (!byId[id.split('::')[0]] || !byId[id.split('::')[0]].inStock) { toast('This gift is currently unavailable.'); return; }
       cart[id] = (cart[id] || 0) + 1;
       renderCart(); bump(cartCount);
       const icon = add.querySelector('use');
       add.classList.add('added');
       icon && icon.setAttribute('href', '#i-check');
       setTimeout(() => { add.classList.remove('added'); icon && icon.setAttribute('href', '#i-cart'); }, 1000);
-      toast(`${byId[id].name} added to cart`);
+      toast(`${byId[id.split('::')[0]].name} added to cart`);
       return;
     }
     const q = e.target.closest('[data-qty]');
@@ -274,7 +287,7 @@
     }
     input.removeAttribute('aria-invalid');
     // TODO: connect to the email provider (Shopify customer API / Klaviyo) before launch.
-    msg.textContent = 'Thank you! You’re on the list ✶';
+    msg.textContent = 'Email updates are not available yet. Please contact the studio on WhatsApp.';
     nl.reset();
   });
 
@@ -294,6 +307,8 @@
     isWished: id => wish.has(id),
     wishlist: () => [...wish],
     addToCart(key, qty = 1, note = '') {
+      const item=line(key);
+      if(!item || !item.p.inStock || item.unresolved || (key.includes('::') && !item.p.variants?.find((v,i)=>v.id===key.split('::')[1]||String(i)===key.split('::')[1])?.available))return;
       cart[key] = (cart[key] || 0) + qty;
       if (note) notes[key] = note;
       renderCart(); bump(cartCount);

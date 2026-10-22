@@ -40,7 +40,7 @@ def summary_box(title="Order summary", cta=""):
           <p class="osum__ship" data-sum-hint></p>
           {cta}
           <ul class="osum__trust" role="list">
-            <li><svg aria-hidden="true"><use href="#i-shield"/></svg>Secure payment</li>
+            <li><svg aria-hidden="true"><use href="#i-shield"/></svg>Payment verified by the studio</li>
             <li><svg aria-hidden="true"><use href="#i-whatsapp"/></svg>Design preview before we build</li>
           </ul>
         </aside>'''
@@ -99,16 +99,12 @@ def checkout_page(crumbs):
 
             <fieldset class="co-card">
               <legend><span class="co-card__n">4</span>Payment</legend>
-              <label class="paym">
-                <input type="radio" name="payment" value="online" checked>
-                <span class="paym__body"><strong>Pay online</strong><span>UPI, cards, net banking or wallets through our secure payment partner.</span>
-                  <span class="paym__logos" aria-hidden="true"><i>UPI</i><i>VISA</i><i>RuPay</i><i>Mastercard</i></span></span>
-              </label>
+
               <label class="paym">
                 <input type="radio" name="payment" value="whatsapp">
                 <span class="paym__body"><strong>Confirm on WhatsApp, pay by UPI</strong><span>Send your order to us on WhatsApp and pay by UPI once you've approved the design preview.</span></span>
               </label>
-              <p class="field-hint field-hint--info"><svg aria-hidden="true"><use href="#i-info"/></svg>We never see or store your card details — online payments are handled by the payment provider.</p>
+              <p class="field-hint field-hint--info"><svg aria-hidden="true"><use href="#i-info"/></svg>The studio confirms your order and verifies payment before production.</p>
             </fieldset>
 
             <p class="co__legal">By placing this order you agree to our <a href="{{P}}terms.html">Terms</a>, <a href="{{P}}shipping-policy.html">Shipping Policy</a> and <a href="{{P}}refund-policy.html">Returns &amp; Refunds</a>. Personalised items can't be returned.</p>
@@ -118,19 +114,7 @@ def checkout_page(crumbs):
       </div>
     </section>
 
-    <!-- Payment gateway placeholder: shown in demo mode until a real gateway (e.g. Razorpay) is connected in js/checkout.js -->
-    <div class="paydemo" data-paydemo hidden>
-      <div class="paydemo__backdrop"></div>
-      <div class="paydemo__box" role="dialog" aria-modal="true" aria-labelledby="pd-title">
-        <p class="c-eyebrow">Demo mode</p>
-        <h2 id="pd-title" class="paydemo__title">Payment gateway not connected yet</h2>
-        <p>In the live shop, a secure payment window opens here for <strong data-pd-amount></strong>. For now you can simulate the result to test the flow — no money is taken.</p>
-        <div class="paydemo__btns">
-          <button class="btn btn--coral" type="button" data-pd-ok>Simulate successful payment</button>
-          <button class="btn-outline" type="button" data-pd-cancel>Cancel</button>
-        </div>
-      </div>
-    </div>'''
+'''
     page("checkout.html", title="Checkout | Craft by Payal", description="Complete your Craft by Payal order.",
          body=body, css=CSS, scripts=("config.js", "checkout.js"), body_class="page-info page-checkout", whatsapp=False)
 

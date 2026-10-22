@@ -1,5 +1,6 @@
 // Cart page, checkout and order confirmation.
-(() => {
+(async () => {
+  await window.CBP_READY;
   'use strict';
 
   const $ = (s, el = document) => el.querySelector(s);
@@ -14,44 +15,13 @@
     set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } }
   };
 
-  /* ================= Payment adapter =================
-     mode 'demo'  → shows a clearly-labelled simulator (no money taken).
-     To go live with Razorpay:
-       1. Create the order on your server (Razorpay Orders API) and return its id.
-       2. Load https://checkout.razorpay.com/v1/checkout.js and replace start() with:
-            new Razorpay({ key: 'rzp_live_…', amount: order.total * 100, currency: 'INR', order_id,
-                           name: 'Craft by Payal', prefill: { email, contact },
-                           handler: res => resolve({ ok: true, ref: res.razorpay_payment_id }),
-                           modal: { ondismiss: () => resolve({ ok: false }) } }).open();
-       3. Verify the payment signature on your server before marking the order paid. */
-  const PAYMENT = {
-    mode: 'demo',
-    start(order) {
-      return new Promise(resolve => {
-        const box = $('[data-paydemo]');
-        $('[data-pd-amount]', box).textContent = inr(order.total);
-        box.hidden = false;
-        document.body.classList.add('lock');
-        $('[data-pd-ok]', box).focus();
-        const done = ok => {
-          box.hidden = true;
-          document.body.classList.remove('lock');
-          $('[data-pd-ok]', box).onclick = $('[data-pd-cancel]', box).onclick = null;
-          resolve(ok ? { ok: true, ref: 'DEMO-' + Date.now().toString(36).toUpperCase() } : { ok: false });
-        };
-        $('[data-pd-ok]', box).onclick = () => done(true);
-        $('[data-pd-cancel]', box).onclick = () => done(false);
-        box.onkeydown = e => { if (e.key === 'Escape') done(false); };
-      });
-    }
-  };
-
+  // Production release accepts owner-verified UPI/WhatsApp payments only.
   /* ================= Order summary ================= */
   function renderSummary(lines, totals) {
     const list = $('[data-sum-items]');
     if (!list) return;
     list.innerHTML = lines.map(l => `<li class="osum__item">
-        <span class="osum__img"><img src="${l.image}&width=120" alt="" width="56" height="56"><b>${l.qty}</b></span>
+        <span class="osum__img"><img src="${window.CBP_IMAGE(l.image,120)}" alt="" width="56" height="56"><b>${l.qty}</b></span>
         <span class="osum__name">${esc(l.name)}${l.variant ? `<small>${esc(l.variant)}</small>` : ''}${l.note ? `<small class="osum__note">${esc(l.note)}</small>` : ''}</span>
         <span class="osum__price">${inr(l.qty * l.price)}</span>
       </li>`).join('');
@@ -62,7 +32,7 @@
     if (hint) hint.textContent = totals.subtotal && totals.subtotal < CBP.FREE_SHIP
       ? `Add ${inr(CBP.FREE_SHIP - totals.subtotal)} more for free shipping.` : '';
   }
-  const liveLines = () => CBP.cartLines().map(l => ({ key: l.key, id: l.id, name: l.p.name, image: l.p.image, variant: l.variant, note: l.note, qty: l.qty, price: l.price }));
+  const liveLines = () => CBP.cartLines().map(l => ({ key: l.key, id: l.id, name: l.p.name, image: l.p.image, managed:l.p.managed, variantId:l.variantId, unresolved:l.unresolved, variant: l.variant, note: l.note, qty: l.qty, price: l.price }));
 
   /* ================= Cart page ================= */
   const cartPage = $('[data-cart-page]');
@@ -70,13 +40,14 @@
     const renderCartPage = () => {
       const lines = liveLines();
       $('[data-cart-lines]').innerHTML = lines.map(l => `<li class="v2line">
-          <a class="v2line__img" href="products/${l.id}.html"><img src="${l.image}&width=400" alt="${esc(l.name)}" width="260" height="260"></a>
+          <a class="v2line__img" href="${window.CBP_PRODUCT_URL(l)}"><img src="${window.CBP_IMAGE(l.image,400)}" alt="${esc(l.name)}" width="260" height="260"></a>
           <div class="v2line__body">
             <div class="v2line__top">
               <div>
-                <h2 class="v2line__name"><a href="products/${l.id}.html">${esc(l.name)}</a></h2>
+                <h2 class="v2line__name"><a href="${window.CBP_PRODUCT_URL(l)}">${esc(l.name)}</a></h2>
                 <p class="v2line__price">${inr(l.price)}</p>
                 ${l.variant ? l.variant.split(' · ').map(v => `<p class="v2line__meta">${/in$/.test(v) ? 'Size' : 'Style'}: ${esc(v)}</p>`).join('') : '<p class="v2line__meta">Size &amp; style: confirmed on WhatsApp</p>'}
+                ${l.unresolved?'<p class="v2line__meta" role="status">Product details need to be rechecked. Your item has been kept.</p>':''}
                 ${l.note ? `<p class="v2line__meta v2line__note">${esc(l.note)}</p>` : ''}
               </div>
             </div>
@@ -175,6 +146,11 @@
     }
     // re-check a field once the user leaves it (after a first submit attempt)
     let tried = false;
+    let submitting=false;
+    let reviewedQuote=null;
+    const onlineOption=form.querySelector('input[name="payment"][value="online"]');
+    if(onlineOption){onlineOption.disabled=true;onlineOption.closest('label').hidden=true;}
+    const manualOption=form.querySelector('input[name="payment"][value="whatsapp"]');if(manualOption)manualOption.checked=true;
     form.addEventListener('focusout', e => { if (tried && e.target.matches('[required]')) validate(); });
     form.elements.pin.addEventListener('input', e => { e.target.value = digits(e.target.value).slice(0, 6); });
 
@@ -195,6 +171,7 @@
     function finish(order) {
       session.set('cbp-last-order', order);
       sessionStorage.removeItem('cbp-checkout-draft');
+      sessionStorage.removeItem('cbp-pending-order');
       CBP.clearCart();
       location.href = 'order-confirmation.html';
     }
@@ -216,6 +193,7 @@
     const placeBtn = $('[data-place-order]');
     form.addEventListener('submit', async e => {
       e.preventDefault();
+      if(submitting)return;
       tried = true;
       const errs = validate();
       const box = $('[data-co-errors]');
@@ -227,29 +205,39 @@
         return;
       }
       box.hidden = true;
-      const order = makeOrder();
-      if (API) {
-        busy(true, 'Placing your order… ');
-        const saved = await callApi({ action: 'create', order });
-        busy(false);
-        if (!saved.ok) {
-          box.hidden = false;
-          box.innerHTML = '<strong>We couldn\'t place your order just now.</strong> Please check your connection and try again — or send it to us on WhatsApp from the payment options below.';
-          box.scrollIntoView({ block: 'center' });
-          return;
-        }
-        order.id = saved.id;          // short number from the order book, e.g. CBP-1024
-        order.saved = true;
+      if(!API||!window.CBP_CATALOG_STATE?.complete){
+        box.hidden=false;box.textContent='Checkout is waiting for the published shop backend. Your cart is safe. Please retry or contact the studio.';return;
       }
-      if (order.payment === 'whatsapp') { finish(order); return; }
-      busy(true, 'Opening secure payment… ');
-      const res = await PAYMENT.start(order);
-      busy(false);
-      if (res.ok) {
-        order.status = 'paid'; order.paymentRef = res.ref; order.demo = PAYMENT.mode === 'demo';
-        if (API) await callApi({ action: 'paid', id: order.id, phone: order.customer.phone, ref: res.ref });
+      let order=makeOrder();
+      const inputKey=JSON.stringify({customer:order.customer,address:order.address,gift:order.gift,payment:order.payment,lines:order.lines.map(l=>({id:l.id,variantId:l.variantId,qty:l.qty,note:l.note}))});
+      const pending=session.get('cbp-pending-order');
+      if(pending&&pending.inputKey!==inputKey){box.hidden=false;box.textContent='A previous order attempt is still unconfirmed. Restore its details and retry, or contact the studio before starting another order. Your cart has been kept.';return;}
+      submitting=true;busy(true,pending?'Checking your order… ':'Checking prices… ');
+      try{
+        let payload=pending?.payload;
+        if(!payload){
+          const result=await callApi({action:'quote',order});
+          if(!result.ok||!result.quote)throw Error(result.error||'Could not verify prices. Your cart has been kept.');
+          const quote=result.quote;
+          if((quote.total!==order.total||quote.lines.some((l,i)=>l.price!==order.lines[i]?.price))&&reviewedQuote!==inputKey+quote.fingerprint){
+            reviewedQuote=inputKey+quote.fingerprint;renderSummary(quote.lines,quote);box.hidden=false;box.textContent='Prices or shipping have changed. Review the updated summary, then press Place order again to accept it.';return;
+          }
+          payload={action:'create',requestId:crypto.randomUUID(),quoteFingerprint:quote.fingerprint,quoteExpires:quote.expiresAt,quoteToken:quote.token,order};
+          session.set('cbp-pending-order',{inputKey,payload});
+          // Do not submit unless the retry identity was durably saved in this tab.
+          if(session.get('cbp-pending-order')?.payload?.requestId!==payload.requestId)throw Error('Allow browser session storage before placing this order.');
+        }
+        busy(true,'Placing your order… ');
+        const saved=await callApi(payload);
+        if(!saved.ok){
+          if(saved.code&&saved.code!=='SERVER_ERROR'&&saved.code!=='BUSY')sessionStorage.removeItem('cbp-pending-order');
+          throw Error(saved.error||'We could not confirm the result. Your cart and request have been kept. Retry to check the same order.');
+        }
+        if(saved.schema!==2||!saved.quote)throw Error('The shop did not confirm the order. Retry this same attempt.');
+        order={...payload.order,...saved.quote,id:saved.id,orderId:saved.orderId,accessToken:saved.accessToken,uploadToken:saved.uploadToken,uploadUrl:saved.uploadUrl,saved:true};
         finish(order);
-      } else CBP.toast('Payment cancelled — your cart is saved.');
+      }catch(error){box.hidden=false;box.textContent=error.message;}
+      finally{submitting=false;busy(false);}
     });
     $('[data-co-errors]').addEventListener('click', e => {
       const a = e.target.closest('[data-goto]');
@@ -266,26 +254,47 @@
     const first = o.customer.name.split(' ')[0];
     $('[data-done-name]').textContent = first;
     $('[data-done-id]').textContent = o.id;
-    const itemsText = o.lines.map(l => `• ${l.qty} × ${l.name}${l.variant ? ` (${l.variant})` : ''}${l.note ? ` — ${l.note}` : ''}`).join('\n');
-    // TODO (go-live): orders must also be saved server-side (e.g. Shopify / your backend) and a confirmation email sent.
-    // Until then the WhatsApp message is how the order details reach the studio, so it always carries the full order.
+    // WhatsApp uses single asterisks for bold. Keep sections readable on a phone.
+    const itemsText = o.lines.map((l, i) => [
+      `*${i + 1}. ${l.name}*`,
+      l.variant || '',
+      `${l.qty} × ${inr(l.price)} · ${inr(l.qty * l.price)}`,
+      l.note ? `Personalisation: ${l.note}` : ''
+    ].filter(Boolean).join('\n')).join('\n\n');
+    const gift = o.gift || {};
     const a0 = o.address;
+    const neededBy = gift.needBy ? new Date(gift.needBy + 'T12:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+    const payment = o.demo ? 'Test payment · no money taken' :
+      o.payment === 'online' && o.status === 'paid' ? 'Paid online' : 'Pending · please confirm payment details';
+    const giftDetails = [
+      gift.occasion ? `Occasion: ${gift.occasion}` : '',
+      neededBy ? `Requested by: ${neededBy}` : '',
+      gift.message ? `Gift note: “${gift.message}”` : '',
+      gift.hidePrice ? 'Please leave prices out of the parcel.' : ''
+    ].filter(Boolean);
     const details = [
-      itemsText, '',
-      `Total: ${inr(o.total)}${o.payment === 'online' ? (o.demo ? ' (test payment)' : ` — paid, ref ${o.paymentRef}`) : ''}`,
-      `Deliver to: ${o.customer.name}, ${a0.line1}${a0.line2 ? ', ' + a0.line2 : ''}, ${a0.city}, ${a0.state} ${a0.pin}`,
-      `Phone: ${o.customer.phone} · Email: ${o.customer.email}`,
-      o.gift.needBy ? `Needed by: ${o.gift.needBy}` : '',
-      o.gift.occasion ? `Occasion: ${o.gift.occasion}` : '',
-      o.gift.message ? `Gift message: ${o.gift.message}` : '',
-      o.gift.hidePrice ? 'Gift — please leave prices out of the parcel.' : ''
-    ].filter((x, i) => x || i === 1).join('\n');
-    const waOrder = `Hi Craft by Payal! I'd like to confirm my order ${o.id}.\n\n${details}\n\nI'll share my photos here.`;
-    const waPhotos = `Hi Craft by Payal! I've placed order ${o.id}.\n\n${details}\n\nSharing my photos here.`;
+      '🎁 *CRAFT BY PAYAL*\n_Little things. Lasting memories._',
+      `*Order ${o.id}*`,
+      `🛍️ *Your little treasures*\n${itemsText}`,
+      ['*Order summary*',
+        `Subtotal: ${inr(o.subtotal ?? o.lines.reduce((sum, l) => sum + l.price * l.qty, 0))}`,
+        `Shipping: ${Number(o.shipping || 0) === 0 ? 'Free' : inr(o.shipping)}`,
+        `*Total: ${inr(o.total)}*`,
+        `Payment: ${payment}`,
+        o.paymentRef ? `Reference: ${o.paymentRef}` : ''
+      ].filter(Boolean).join('\n'),
+      ['📦 *Deliver with care*', o.customer.name, a0.line1, a0.line2,
+        `${a0.city}, ${a0.state} — ${a0.pin}`,
+        `Phone: ${o.customer.phone}`, `Email: ${o.customer.email}`
+      ].filter(Boolean).join('\n'),
+      giftDetails.length ? `💌 *A personal touch*\n${giftDetails.join('\n')}` : ''
+    ].filter(Boolean).join('\n\n');
+    const waOrder = `${details}\n\nI'd like to confirm this order. I'll share my photos here.\nPlease confirm the design and delivery timeline. 🤍`;
+    const waPhotos = `${details}\n\nI've placed this order and will share my photos here for the design preview. 🤍`;
     if (o.payment === 'whatsapp') {
       $('[data-done-eyebrow]').textContent = 'One last step';
-      $('[data-done-lede]').textContent = 'Send your order to us on WhatsApp to confirm it. We\'ll reply with a design preview, then you can pay by UPI.';
-      $('[data-done-actions]').innerHTML = `<a class="btn btn--coral" href="${WA}?text=${encodeURIComponent(waOrder)}" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg> Send order on WhatsApp</a>
+      $('[data-done-lede]').textContent = 'Open WhatsApp, then press Send to share your order. We\'ll confirm the design and payment details with you.';
+      $('[data-done-actions]').innerHTML = `<a class="btn btn--coral" href="${WA}?text=${encodeURIComponent(waOrder)}" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg> Open WhatsApp to confirm</a>
         <a class="btn-outline" href="collections/miniature-frame.html">Continue shopping</a>`;
     } else {
       $('[data-done-eyebrow]').textContent = o.demo ? 'Order placed · demo payment' : 'Payment received';
@@ -293,6 +302,12 @@
       $('[data-done-actions]').innerHTML = `<a class="btn btn--coral" href="${WA}?text=${encodeURIComponent(waPhotos)}" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg> Share photos on WhatsApp</a>
         <a class="btn-outline" href="collections/miniature-frame.html">Continue shopping</a>`;
     }
+    if(o.uploadUrl&&o.orderId&&o.uploadToken){
+      const uploadLink=document.createElement('a');uploadLink.className='btn-outline';uploadLink.textContent='Upload photos privately';uploadLink.target='_blank';uploadLink.rel='noopener noreferrer';
+      uploadLink.href=o.uploadUrl+'#'+new URLSearchParams({orderId:o.orderId,token:o.uploadToken});
+      $('[data-done-actions]').append(uploadLink);
+    }
+    if(o.orderId&&o.accessToken){const track=document.createElement('a');track.className='btn-outline';track.textContent='Track this order';track.href='track-order.html#'+new URLSearchParams({orderId:o.orderId,token:o.accessToken});$('[data-done-actions]').append(track);}
     const a = o.address;
     $('[data-done-addr]').innerHTML = `<strong>${esc(o.customer.name)}</strong><br>${esc(a.line1)}${a.line2 ? '<br>' + esc(a.line2) : ''}<br>${esc(a.city)}, ${esc(a.state)} ${esc(a.pin)}<br>${esc(o.customer.phone)} · ${esc(o.customer.email)}`
       + (o.gift.message ? `<p class="done__gift"><svg aria-hidden="true"><use href="#i-gift"/></svg> Gift message: “${esc(o.gift.message)}”</p>` : '');
