@@ -7,6 +7,12 @@ window.CBP_READY = (async () => {
   const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const products = window.CBP_PRODUCTS || [];          // homepage favourites
   const catalog = window.CBP_CATALOG || [];             // full catalogue (shared across pages)
+  const siteRoot=new URL('../',document.querySelector('script[src$="main.js"]').src);
+  const types=window.CBP_GIFT_TYPES.filter(t=>t.enabled&&catalog.some(p=>p.collection===t.id));
+  const giftLink=t=>new URL('collections/all.html?giftType='+encodeURIComponent(t.id),siteRoot).href;
+  $$('[data-gift-type-menu]').forEach(menu=>{menu.innerHTML=`<a href="${new URL('collections/all.html',siteRoot).href}">All Gifts</a>`+types.map(t=>`<a href="${giftLink(t)}">${esc(t.name)}</a>`).join('');});
+  $$('[data-gift-type-mobile]').forEach(item=>{item.innerHTML=types.map(t=>`<a href="${giftLink(t)}" data-close-drawer>${esc(t.name)}</a>`).join('');});
+  $$('[data-gift-type-cards]').forEach(grid=>{grid.innerHTML=types.map(t=>{const first=catalog.find(p=>p.collection===t.id);return `<li><a class="col-card" href="${giftLink(t)}" style="--accent:#E7DCCB"><span class="col-card__media"><img src="${esc(t.image||first.image)}" alt="${esc(t.imageAlt||first.alt||t.name)}" width="600" height="450" loading="lazy"></span><span class="col-card__label">${esc(t.name)} <span class="circle" aria-hidden="true">→</span></span></a></li>`;}).join('');});
   const byId = Object.fromEntries([...catalog, ...products].map(p => [p.id, p]));
   const inr = n => '₹' + n.toLocaleString('en-IN');
   const FREE_SHIP = window.CBP_SHIPPING?.freeAbove ?? 999;
@@ -29,6 +35,7 @@ window.CBP_READY = (async () => {
   const line = key => {
     const [id, variantKey] = key.split('::');
     const p=byId[id],saved=snapshots[key];
+    if(p?.listingState==='preview')return {key,id,p,price:0,variant:'Preview only — remove to continue',variantId:'',unresolved:true,notOrderable:true};
     const v=p?.variants ? (variantKey===undefined?p.variants.find(v=>v.available):
       (p.variants.find(v=>v.id===(saved?.variantId||variantKey))||(/^\d+$/.test(variantKey)?p.variants.find(v=>v.id===id+'-v'+variantKey)||(!p.variants.some(v=>v.id)?p.variants[+variantKey]:null):null))):null;
     // A missing catalogue record is not permission to delete a customer's cart.
@@ -36,7 +43,7 @@ window.CBP_READY = (async () => {
       const fallback=saved?.p||{id,name:'Gift awaiting product details',image:new URL('../assets/og-image.png',document.querySelector('script[src$="main.js"]').src).href,price:0,managed:true};
       return {key,id,p:fallback,price:saved?.price||0,variant:saved?.variant||'',variantId:saved?.variantId||'',unresolved:true};
     }
-    const item={key,id,p,price:v?v.price:p.price,variant:v?[v.size,v.light].filter(Boolean).join(' · '):'',variantId:v?.id||'',unresolved:false};
+    const item={key,id,p,price:v?v.price:p.price,variant:v?[v.size,v.light].filter(Boolean).join(' · '):'',variantId:v?.id||'',unresolved:false,notOrderable:!window.CBP_CAN_ORDER(p)};
     snapshots[key]={p:{id:p.id,name:p.name,image:p.image,price:item.price,managed:p.managed},price:item.price,variant:item.variant,variantId:item.variantId};
     return item;
   };
@@ -176,13 +183,13 @@ window.CBP_READY = (async () => {
       ? 'You’ve unlocked free shipping ✶'
       : `Add ${inr(FREE_SHIP - total)} more for free shipping (otherwise ${inr(SHIP_FEE)})`;
     const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-    $('[data-cart-items]').innerHTML = lines.map(({ key, p, price, variant }) => `<li class="cart-item">
+    $('[data-cart-items]').innerHTML = lines.map(({ key, p, price, variant, notOrderable }) => `<li class="cart-item">
         <img src="${window.CBP_IMAGE(p.image,160)}" alt="" width="76" height="76">
         <div>
           <p class="cart-item__name">${esc(p.name)}</p>
           ${variant ? `<p class="cart-item__variant">${esc(variant)}</p>` : ''}
           ${notes[key] ? `<p class="cart-item__note">${esc(notes[key])}</p>` : ''}
-          <p class="cart-item__price">${inr(price)}</p>
+          <p class="cart-item__price">${notOrderable?"Unavailable to order":inr(price)}</p>
           <div class="qty" role="group" aria-label="Quantity for ${esc(p.name)}">
             <button type="button" data-qty="${key}" data-d="-1" aria-label="Decrease quantity">−</button>
             <span aria-live="polite">${cart[key]}</span>
@@ -198,7 +205,7 @@ window.CBP_READY = (async () => {
       let id = add.dataset.add;
       const quick=byId[id]?.variants?.find(v=>v.available);
       if(quick?.id)id+='::'+quick.id;
-      if (!byId[id.split('::')[0]] || !byId[id.split('::')[0]].inStock) { toast('This gift is currently unavailable.'); return; }
+      if (!window.CBP_CAN_ORDER(byId[id.split('::')[0]])) { toast('This gift is currently unavailable.'); return; }
       cart[id] = (cart[id] || 0) + 1;
       renderCart(); bump(cartCount);
       const icon = add.querySelector('use');
@@ -308,7 +315,7 @@ window.CBP_READY = (async () => {
     wishlist: () => [...wish],
     addToCart(key, qty = 1, note = '') {
       const item=line(key);
-      if(!item || !item.p.inStock || item.unresolved || (key.includes('::') && !item.p.variants?.find((v,i)=>v.id===key.split('::')[1]||String(i)===key.split('::')[1])?.available))return;
+      if(!item || !window.CBP_CAN_ORDER(item.p) || item.unresolved || (key.includes('::') && !item.p.variants?.find((v,i)=>v.id===key.split('::')[1]||String(i)===key.split('::')[1])?.available))return;
       cart[key] = (cart[key] || 0) + qty;
       if (note) notes[key] = note;
       renderCart(); bump(cartCount);

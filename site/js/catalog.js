@@ -2022,5 +2022,141 @@ window.CBP_CATALOG = [
     "available": true
    }
   ]
- }
+ },
+ {
+ "id": "ocean-shell-charms",
+  "managed": true,
+ "name": "Ocean Shell Charms",
+ "collection": "resin-art",
+ "productType": "Resin accessories",
+ "description": "Handcrafted translucent blue resin shell and starfish charms with delicate ocean shimmer. Perfect for gifting, keepsakes, and coastal decor.",
+ "careInstructions": "Wipe gently with a soft microfiber cloth. Avoid direct contact with harsh chemicals or excessive heat.",
+ "price": 599,
+ "priceFrom": true,
+ "compareAt": null,
+ "inStock": true,
+ "image": "https://images.unsplash.com/photo-1596704017254-9b121068fb31?w=900&auto=format&fit=crop&q=80",
+ "image2": null,
+ "alt": "Ocean Shell Charms – translucent blue resin shell and starfish charms",
+ "isNew": true,
+ "created": "2026-10-23",
+ "order": 43,
+ "occasion": [
+  "Birthday",
+  "Festive"
+ ],
+ "theme": [
+  "Ocean",
+  "Nature"
+ ],
+ "size": [
+  "Set of 2",
+  "Set of 4"
+ ],
+ "light": [],
+ "variants": [
+  {
+   "id": "ocean-shell-charms-v1",
+   "size": "Set of 2",
+   "light": "",
+   "price": 599,
+   "available": true
+  },
+  {
+   "id": "ocean-shell-charms-v2",
+   "size": "Set of 4",
+   "light": "",
+   "price": 1099,
+   "available": true
+  }
+ ]
+},
+ {
+ "id": "walnut-river-table",
+  "managed": true,
+ "name": "Walnut River Accent Table",
+ "collection": "resin-art",
+ "productType": "Resin home decor",
+ "description": "Handmade accent tabletop combining rich solid walnut grain with a luminous translucent resin river. Each piece is custom poured with precision.",
+ "careInstructions": "Clean with a damp cloth and mild soap. Do not place scorching hot items directly on resin surface without coasters.",
+ "price": 5499,
+ "priceFrom": true,
+ "compareAt": null,
+ "inStock": true,
+ "image": "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=900&auto=format&fit=crop&q=80",
+ "image2": null,
+ "alt": "Walnut River Accent Table – walnut tabletop with translucent resin river",
+ "isNew": true,
+ "created": "2026-10-23",
+ "order": 44,
+ "occasion": [
+  "House Warming",
+  "Anniversary"
+ ],
+ "theme": [
+  "Home Decor",
+  "Nature"
+ ],
+ "size": [
+  "16×16 in",
+  "20×20 in"
+ ],
+ "light": [],
+ "variants": [
+  {
+   "id": "walnut-river-table-v1",
+   "size": "16×16 in",
+   "light": "",
+   "price": 5499,
+   "available": true
+  },
+  {
+   "id": "walnut-river-table-v2",
+   "size": "20×20 in",
+   "light": "",
+   "price": 7999,
+   "available": true
+  }
+ ]
+},
+ {
+ "id": "koi-pond-keycap",
+  "managed": true,
+ "name": "Koi Pond Artisan Keycap",
+ "collection": "resin-art",
+ "productType": "Resin desk accessories",
+ "description": "Artisan mechanical keyboard keycap encapsulating an intricate miniature koi fish in crystal-clear blue resin water. Compatible with Cherry MX switches.",
+ "careInstructions": "Gently dust with a clean brush. Avoid bending stems when mounting or removing from switches.",
+ "price": 899,
+ "priceFrom": false,
+ "compareAt": null,
+ "inStock": true,
+ "image": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=900&auto=format&fit=crop&q=80",
+ "image2": null,
+ "alt": "Koi Pond Artisan Keycap – blue resin artisan keycap with miniature koi fish",
+ "isNew": true,
+ "created": "2026-10-23",
+ "order": 45,
+ "occasion": [
+  "Birthday",
+  "Festive"
+ ],
+ "theme": [
+  "Desk Setup",
+  "Artisan"
+ ],
+ "size": [
+  "Standard"
+ ],
+ "light": [],
+ "variants": [
+  {
+   "id": "koi-pond-keycap-v1",
+   "size": "Standard",
+   "light": "",
+   "price": 899,
+   "available": true
+  }
+ ]
+}
 ];

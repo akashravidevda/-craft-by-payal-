@@ -1,5 +1,7 @@
 # Sheets production backend — staging implementation
 
+> Historical implementation notes. Read [BACKEND-HANDOVER.md](../../BACKEND-HANDOVER.md) first for the verified current state. The staging backend was updated to deployment version 8 on 23 Oct 2026, website uploads are retired, and the standalone Owner sidebar remains unresolved. Older upload/deployment instructions below are not the current operating procedure.
+
 The plain HTML/CSS/JavaScript storefront uses readable Google Sheets tables. Apps Script validates catalogue publication, quotes and orders; Google Drive holds private customer photos. Owners do not maintain JSON product cells. Protected technical operation payloads remain structured internally for recovery. Customer accounts and gateway payments are excluded from this first release.
 
 **The live Google deployment has not been changed. This implementation requires staging verification before launch.**

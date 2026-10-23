@@ -3,7 +3,7 @@
 Shared chrome (icon sprite, announcement bar, header, footer, drawers) is copied from site/index.html,
 so edit those parts on the homepage and re-run:  python tools/build_collection.py
 """
-import os, sys
+import os, sys, re
 
 sys.path.insert(0, os.path.dirname(__file__))
 from shell import chrome, WA_NUMBER, SITE_URL
@@ -58,7 +58,7 @@ page = f'''<!doctype html>
       {{"@type":"ListItem","position":3,"name":"Miniature Frame"}}]}}]}}
   </script>
 </head>
-<body class="page-collection">
+<body class="page-collection" data-collection="miniature-frame">
   {sprite}
 
   <a class="skip-link" href="#products">Skip to products</a>
@@ -111,6 +111,7 @@ page = f'''<!doctype html>
               <button class="icon-btn filters__close" type="button" aria-label="Close filters" data-filter-close><svg><use href="#i-close"/></svg></button>
             </div>
             <form class="filters__body" data-filter-form>
+              <details class="fgroup" open><summary>Gift type</summary><div class="fgroup__opts" data-facet="giftType"></div></details>
               <details class="fgroup" open>
                 <summary>Availability</summary>
                 <div class="fgroup__opts" data-facet="avail"></div>
@@ -124,9 +125,10 @@ page = f'''<!doctype html>
                     <label class="visually-hidden" for="pmax">Maximum price</label>
                     <input id="pmax" type="range" step="50" data-price-max>
                   </div>
-                  <p class="price__vals"><span data-price-min-out></span><span data-price-max-out></span></p>
+                  <p class="fopt">Price filters apply to priced products only.</p><p class="price__vals"><span data-price-min-out></span><span data-price-max-out></span></p>
                 </div>
               </details>
+              <details class="fgroup" open><summary>Product type</summary><div class="fgroup__opts" data-facet="subtype"></div></details>
               <details class="fgroup" open>
                 <summary>Occasion</summary>
                 <div class="fgroup__opts" data-facet="occasion"></div>
@@ -160,7 +162,7 @@ page = f'''<!doctype html>
 
         <div class="results">
           <div class="toolbar">
-            <p class="toolbar__count" aria-live="polite" data-count>43 Products</p>
+            <p class="toolbar__count" aria-live="polite" data-count>Loading products…</p>
             <button class="toolbar__filter" type="button" aria-controls="filters" aria-expanded="false" data-filter-open>
               <svg aria-hidden="true"><use href="#i-sliders"/></svg> Filter <span class="toolbar__badge" data-filter-badge hidden></span>
             </button>
@@ -177,11 +179,11 @@ page = f'''<!doctype html>
           </div>
           <ul class="chips" role="list" aria-label="Active filters" data-chips></ul>
           <ul class="cgrid" role="list" data-grid>
-            <li class="cgrid__noscript">Loading frames…</li>
+            <li class="cgrid__noscript">Loading products…</li>
           </ul>
           <div class="empty" data-empty hidden>
-            <p class="script">No frames match those filters yet…</p>
-            <p>Try removing a filter, or ask us for a custom design.</p>
+            <p class="script">No products match these filters.</p>
+            <p>Try removing a filter to see more products.</p>
             <button class="btn btn--coral" type="button" data-clear>Clear all filters</button>
           </div>
           <nav class="pager" aria-label="Pagination" data-pager></nav>
@@ -230,12 +232,36 @@ page = f'''<!doctype html>
   {drawers}
 
   <script src="../js/catalog.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/gift-catalogue.js"></script>
+  <script src="../js/resin-samples.js"></script>
+  <script src="../js/catalog-live.js"></script>
   <script src="../js/main.js"></script>
   <script src="../js/collection.js"></script>
 </body>
 </html>
 '''
+
 os.makedirs(OUT_DIR, exist_ok=True)
-with open(OUT, "w", encoding="utf-8") as f:
-    f.write(page)
-print("wrote", os.path.normpath(OUT))
+for slug,title,description in [
+    ('miniature-frame','Miniature Frames','Handmade miniature frames for meaningful gifts.'),
+    ('resin-art','Resin Art','Explore resin art for your home and gifting. Available pieces will appear here once published.'),
+    ('all','All Gifts','Browse our collections and find a gift for your occasion.')
+]:
+    output=page.replace('data-collection="miniature-frame"',f'data-collection="{slug}"').replace('aria-label="Miniature frames"','aria-label="Gifts"')
+    output=output.replace('Miniature Frames | Personalised Handmade Gifts','All Gifts').replace('Miniature Frames |','All Gifts |')
+    output=output.replace(SITE_URL+'/collections/miniature-frame.html',SITE_URL+'/collections/all.html')
+    description='Explore gifts by type, occasion and style. Choose a category below to find your gift.'
+    output=re.sub(r'<meta name="description" content="[^"]*">',f'<meta name="description" content="{description}">',output)
+    output=re.sub(r'<meta property="og:description" content="[^"]*">',f'<meta property="og:description" content="{description}">',output)
+    output=re.sub(r'  <link rel="preload" as="image"[^>]*>','',output)
+    hero=f'''<section class="c-hero c-hero--text" aria-labelledby="c-title"><div class="container"><p class="c-eyebrow">Find their kind of gift</p><h1 id="c-title" class="c-hero__title">All Gifts</h1><p class="c-hero__lede">{description}</p></div></section>'''
+    output=re.sub(r'<section class="c-hero".*?</section>',lambda m:hero,output,count=1,flags=re.S)
+    output=output.replace('<span aria-current="page">Miniature Frame</span>','<span aria-current="page">All Gifts</span>')
+    output=re.sub(r'<script type="application/ld\+json">.*?</script>','',output,flags=re.S)
+    output=output.replace(' aria-current="page">Miniature Frame</a>','>Miniature Frame</a>')
+    output=re.sub(r'<div class="custom-cta">.*?</div>','',output,flags=re.S)
+    output=output.replace('<strong>Personalised</strong><span>for every story</span>','<strong>Thoughtful</strong><span>gifts to discover</span>').replace('<strong>Secure</strong><span>payments</span>','<strong>Order details</strong><span>confirmed with you</span>')
+    target=os.path.join(OUT_DIR,slug+'.html')
+    with open(target,'w',encoding='utf-8') as f:f.write("\n".join(line.rstrip() for line in output.splitlines()) + "\n")
+    print('wrote',os.path.normpath(target))

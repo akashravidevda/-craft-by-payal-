@@ -1,5 +1,7 @@
 # Craft by Payal
 
+**Backend handover: [Start here](BACKEND-HANDOVER.md).** Current Google resources, deployment status, operating steps, known gaps and a continuation prompt for the next developer/model.
+
 Website for **Craft by Payal** — handmade, personalised miniature frames and gifts.
 Designed & developed by [Kaxon](https://kaxon.in).
 

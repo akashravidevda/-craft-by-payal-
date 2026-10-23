@@ -102,7 +102,7 @@ def wishlist():
         <div class="empty" data-wish-empty hidden>
           <p class="script">Nothing saved yet…</p>
           <p>Tap the heart on any frame to keep it here.</p>
-          <a class="btn btn--coral" href="{{P}}collections/miniature-frame.html">Explore frames <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn--coral" href="{{P}}collections/all.html">Explore frames <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
         </div>
       </div>
     </section>'''
@@ -261,7 +261,7 @@ def write_sitemap():
     from shell import ROOT, SITE_URL, NOINDEX, page_url
     today = datetime.date.today().isoformat()
     paths = sorted(os.path.relpath(f, ROOT).replace(os.sep, "/") for f in glob.glob(os.path.join(ROOT, "**", "*.html"), recursive=True))
-    urls = [p for p in paths if p not in NOINDEX]
+    urls = [p for p in paths if p not in NOINDEX and p not in ("collections/resin-art.html", "collections/miniature-frame.html")]
     xml = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     xml += [f"  <url><loc>{page_url(p)}</loc><lastmod>{today}</lastmod></url>" for p in urls]
     xml.append("</urlset>")

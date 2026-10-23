@@ -9,44 +9,61 @@
   const PER_PAGE = 16;
 
   const FACETS = {
-    avail: { label: 'Availability', get: p => [p.inStock ? 'In Stock' : 'Out of Stock'], order: ['In Stock', 'Out of Stock'] },
+    giftType: {label:'Gift type',get:p=>[p.collection]},
+    subtype: {label:'Product type',get:p=>p.productType?[p.productType]:[]},
+    avail: { label: 'Availability', get: p => [p.listingState==='preview'?'Preview only':p.inStock ? 'In Stock' : 'Out of Stock'], order: ['In Stock', 'Out of Stock'] },
     occasion: { label: 'Occasion', get: p => p.occasion },
     theme: { label: 'Theme', get: p => p.theme },
     size: { label: 'Size', get: p => p.size, sort: (a, b) => parseInt(a) - parseInt(b) || parseInt(a.split('×')[1]) - parseInt(b.split('×')[1]) },
     light: { label: 'Lighting', get: p => p.light, order: ['With light', 'Without light'] }
   };
-  const PRICE_MIN = Math.floor((ALL.length?Math.min(...ALL.map(p => p.price)):0) / 50) * 50;
-  const PRICE_MAX = Math.ceil((ALL.length?Math.max(...ALL.map(p => p.price)):50) / 50) * 50;
+  let PRICE_MIN=0,PRICE_MAX=50;
+  const selectedPool=()=>ALL.filter(p=>!state.giftType.length||state.giftType.includes(p.collection));
+  const facetEnabled=k=>k!=='light'||selectedPool().length>0&&selectedPool().every(p=>p.collection==='miniature-frame');
+  function reconcile(){
+    const pool=selectedPool();
+    for(const k of ['subtype','size','light'])state[k]=facetEnabled(k)?state[k].filter(v=>pool.some(p=>FACETS[k].get(p).includes(v))):[];
+    const prices=pool.map(p=>p.price).filter(n=>Number.isFinite(n)&&n>0);
+    PRICE_MIN=prices.length?Math.floor(Math.min(...prices)/50)*50:0;PRICE_MAX=prices.length?Math.ceil(Math.max(...prices)/50)*50:50;
+    if(PRICE_MIN===PRICE_MAX)PRICE_MAX+=50;
+    if(!state.priceActive){state.min=PRICE_MIN;state.max=PRICE_MAX;}else{state.min=clamp(state.min);state.max=clamp(state.max);if(state.min>state.max)[state.min,state.max]=[state.max,state.min];}
+    $('[data-price]').closest('.fgroup').hidden=!prices.length;
+  }
 
   /* ---------- State <-> URL ---------- */
   function readState() {
     const q = new URLSearchParams(location.search);
     const st = { sort: q.get('sort') || 'featured', page: Math.max(1, parseInt(q.get('page')) || 1), q: (q.get('q') || '').trim() };
     for (const k in FACETS) st[k] = q.getAll(k);
-    st.min = clamp(parseInt(q.get('min')) || PRICE_MIN);
-    st.max = clamp(parseInt(q.get('max')) || PRICE_MAX);
+    if(!q.has('giftType')&&!location.pathname.endsWith('/all.html')){const initial=document.body.dataset.collection;if(initial&&initial!=='all')st.giftType=[initial];}
+    st.giftType=st.giftType.filter(id=>window.CBP_GIFT_TYPES.some(t=>t.id===id&&t.enabled)||(id==='unclassified'&&ALL.some(p=>p.collection===id)));
+    if(!st.subtype.length)st.subtype=q.getAll('type');
+    st.priceActive=q.has('min')||q.has('max');
+    st.min = Number.isFinite(parseInt(q.get('min')))?parseInt(q.get('min')):0;
+    st.max = Number.isFinite(parseInt(q.get('max')))?parseInt(q.get('max')):Number.MAX_SAFE_INTEGER;
+    if(st.min>st.max)[st.min,st.max]=[st.max,st.min];
+    if(!SORTS[st.sort])st.sort='featured';
     return st;
   }
   function writeState(push) {
     const q = new URLSearchParams();
     if (state.q) q.set('q', state.q);
     for (const k in FACETS) state[k].forEach(v => q.append(k, v));
-    if (state.min > PRICE_MIN) q.set('min', state.min);
-    if (state.max < PRICE_MAX) q.set('max', state.max);
+    if(state.priceActive){q.set('min',state.min);q.set('max',state.max);}
     if (state.sort !== 'featured') q.set('sort', state.sort);
     if (state.page > 1) q.set('page', state.page);
-    const url = location.pathname + (q.toString() ? '?' + q : '') + location.hash;
+    const url = new URL('all.html',location.href).pathname + (q.toString() ? '?' + q : '') + location.hash;
     history[push ? 'pushState' : 'replaceState'](null, '', url);
   }
   const clamp = n => Math.min(PRICE_MAX, Math.max(PRICE_MIN, n));
-  let state = readState();
+  let state;
 
   /* ---------- Filtering ---------- */
   function matches(p, skip) {
-    if (state.q && !p.name.toLowerCase().includes(state.q.toLowerCase())) return false;
-    if (skip !== 'price' && (p.price < state.min || p.price > state.max)) return false;
+    if (state.q && ![p.name,p.productType,window.CBP_TYPE_NAME(p.collection)].join(' ').toLowerCase().includes(state.q.toLowerCase())) return false;
+    if (skip !== 'price' && state.priceActive && (p.price===null||p.price < state.min || p.price > state.max)) return false;
     for (const k in FACETS) {
-      if (k === skip || !state[k].length) continue;
+      if (k === skip || !facetEnabled(k) || !state[k].length) continue;
       const vals = FACETS[k].get(p);
       if (!state[k].some(v => vals.includes(v))) return false; // OR within a group, AND across groups
     }
@@ -54,9 +71,9 @@
   }
   const SORTS = {
     featured: (a, b) => a.order - b.order,
-    newest: (a, b) => b.created.localeCompare(a.created),
-    'price-asc': (a, b) => a.price - b.price || a.order - b.order,
-    'price-desc': (a, b) => b.price - a.price || a.order - b.order,
+    newest: (a, b) => String(b.created||'').localeCompare(String(a.created||'')),
+    'price-asc': (a, b) => (a.price===null?Infinity:a.price) - (b.price===null?Infinity:b.price) || a.order - b.order,
+    'price-desc': (a, b) => (b.price===null?-Infinity:b.price) - (a.price===null?-Infinity:a.price) || a.order - b.order,
     az: (a, b) => a.name.localeCompare(b.name)
   };
 
@@ -64,8 +81,9 @@
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   function facetValues(k) {
     const f = FACETS[k];
-    const vals = new Set(ALL.flatMap(f.get));
-    (f.order || []).forEach(v => vals.add(v));
+    const vals = new Set((k==='giftType'?ALL:selectedPool()).flatMap(f.get));
+    if(k==='giftType')state.giftType.forEach(v=>vals.add(v));
+    if(k==='size')vals.delete('Standard');
     let list = [...vals];
     if (f.order) list.sort((a, b) => f.order.indexOf(a) - f.order.indexOf(b));
     else if (f.sort) list.sort(f.sort);
@@ -80,18 +98,18 @@
       box.innerHTML = facetValues(k).map((v, i) => {
         const n = pool.filter(p => FACETS[k].get(p).includes(v)).length;
         const on = state[k].includes(v);
-        if (!n && !on) return '';            // nothing matches with the current filters: hide the option
+        if (!n && !on && k!=='giftType') return '';            // nothing matches with the current filters: hide the option
         const id = `f-${k}-${i}`;
         if (k === 'light') {
           return `<label class="fchip" for="${id}"><input id="${id}" type="checkbox" name="${k}" value="${esc(v)}" ${on ? 'checked' : ''} ${!n && !on ? 'disabled' : ''}>
-            <span><svg aria-hidden="true"><use href="#i-bulb"/></svg>${esc(v)} <em>(${n})</em></span></label>`;
+            <span><svg aria-hidden="true"><use href="#i-bulb"/></svg>${esc(k==='giftType'?window.CBP_TYPE_NAME(v):v)} <em>(${n})</em></span></label>`;
         }
         return `<label class="fopt" for="${id}"><input id="${id}" type="checkbox" name="${k}" value="${esc(v)}" ${on ? 'checked' : ''} ${!n && !on ? 'disabled' : ''}>
-          <span>${esc(v)} <em>(${n})</em></span></label>`;
+          <span>${esc(k==='giftType'?window.CBP_TYPE_NAME(v):v)} <em>(${n})</em></span></label>`;
       }).join('');
       // hide the whole group when none of its options apply
       const group = box.closest('.fgroup');
-      if (group) group.hidden = !box.children.length;
+      if (group) group.hidden = !facetEnabled(k)||!box.children.length;
     }
     // price
     const lo = $('[data-price-min]'), hi = $('[data-price-max]');
@@ -113,44 +131,23 @@
 
   /* ---------- Cards ---------- */
   const img = (src, w) => window.CBP_IMAGE(src,w);
-  function card(p, i) {
-    const wished = CBP.isWished(p.id);
-    const eager = i < 4 && state.page === 1;
-    const sizes = p.size.length ? `<span>${p.size.length > 1 ? p.size.length + ' sizes' : p.size[0]}</span>` : '';
-    const light = p.light.includes('With light') ? `<span class="m-light"><svg aria-hidden="true"><use href="#i-bulb"/></svg>Light option</span>` : '';
-    return `<li class="ccard">
-      <a class="ccard__media" href="${window.CBP_PRODUCT_URL(p,"../")}" tabindex="-1" aria-hidden="true">
-        ${p.isNew ? '<span class="ccard__badge">New</span>' : ''}
-        <img src="${img(p.image, 400)}" srcset="${img(p.image, 300)} 300w, ${img(p.image, 400)} 400w, ${img(p.image, 600)} 600w"
-             sizes="(min-width: 1200px) 230px, (min-width: 768px) 30vw, 46vw" width="400" height="448"
-             ${eager ? '' : 'loading="lazy"'} alt="${esc(p.alt)}">
-        ${p.image2 ? `<img class="alt" src="${img(p.image2, 400)}" width="400" height="448" loading="lazy" alt="" aria-hidden="true">` : ''}
-      </a>
-      <button class="ccard__wish" type="button" data-wish="${p.id}" aria-pressed="${wished}"
-              aria-label="${wished ? 'Remove' : 'Add'} ${esc(p.name)} ${wished ? 'from' : 'to'} wishlist"><svg aria-hidden="true"><use href="#i-heart"/></svg></button>
-      <div class="ccard__body">
-        <h3 class="ccard__name"><a href="${window.CBP_PRODUCT_URL(p,"../")}">${esc(p.name)}</a></h3>
-        <p class="ccard__meta">${sizes}${light}</p>
-        <div class="ccard__foot">
-          <p class="ccard__price">${p.priceFrom ? '<small>From</small>' : ''}<span class="visually-hidden">Price </span>${CBP.inr(p.price)}</p>
-          ${p.inStock
-            ? `<button class="add-btn" type="button" data-add="${p.id}" aria-label="Add ${esc(p.name)} to cart"><svg aria-hidden="true"><use href="#i-cart"/></svg></button>`
-            : '<span class="ccard__oos">Out of stock</span>'}
-        </div>
-      </div>
-    </li>`;
-  }
+  const card=(p,i)=>window.CBP_GIFT_CARD(p,i,'../');
 
   /* ---------- Render ---------- */
   const grid = $('[data-grid]');
-  function render({ scroll } = {}) {
+  function render({ scroll, push=false } = {}) {
+    reconcile();
     const list = ALL.filter(p => matches(p)).sort(SORTS[state.sort] || SORTS.featured);
     const pages = Math.max(1, Math.ceil(list.length / PER_PAGE));
     state.page = Math.min(state.page, pages);
     const slice = list.slice((state.page - 1) * PER_PAGE, state.page * PER_PAGE);
 
+    writeState(push);
     grid.innerHTML = slice.map(card).join('');
     $('[data-empty]').hidden = list.length > 0;
+    const empty=$('[data-empty]');
+    document.querySelector('.shop').classList.toggle('shop--empty',!ALL.length);
+    if(!ALL.length){empty.querySelector('.script').textContent=window.CBP_CATALOG_STATE?.online?'No published products yet.':'Product updates are temporarily unavailable.';empty.querySelector('p:not(.script)').textContent=window.CBP_CATALOG_STATE?.online?'Please check back for available pieces.':'Please try again later. Your cart has been kept.';empty.querySelector('[data-clear]').hidden=true;}
     grid.hidden = list.length === 0;
     $('[data-count]').textContent = `${list.length} ${list.length === 1 ? 'Product' : 'Products'}${state.q ? ` for “${state.q}”` : ''}`;
     $$('[data-show-count]').forEach(b => { b.textContent = `Show ${list.length} ${list.length === 1 ? 'result' : 'results'}`; });
@@ -167,8 +164,8 @@
   function activeFilters() {
     const out = [];
     if (state.q) out.push({ k: 'q', v: state.q, label: `“${state.q}”` });
-    for (const k in FACETS) state[k].forEach(v => out.push({ k, v, label: v }));
-    if (state.min > PRICE_MIN || state.max < PRICE_MAX) out.push({ k: 'price', v: '', label: `${CBP.inr(state.min)} – ${CBP.inr(state.max)}` });
+    for (const k in FACETS) state[k].forEach(v => out.push({ k, v, label: k==='giftType'?window.CBP_TYPE_NAME(v):v }));
+    if (state.priceActive) out.push({ k: 'price', v: '', label: `${CBP.inr(state.min)} – ${CBP.inr(state.max)}` });
     return out;
   }
   function renderChips() {
@@ -198,9 +195,8 @@
     const k = t.name;
     state[k] = t.checked ? [...new Set([...state[k], t.value])] : state[k].filter(v => v !== t.value);
     state.page = 1;
-    writeState(false);
     const id = t.id;
-    render();
+    render({push:true});
     const again = document.getElementById(id);
     again && again.focus();
   });
@@ -212,32 +208,31 @@
       paintPrice();
     });
     r.addEventListener('change', () => {
-      state.min = clamp(+lo.value); state.max = clamp(+hi.value); state.page = 1;
-      writeState(false);
-      render();
+      state.priceActive=true;state.min = clamp(+lo.value); state.max = clamp(+hi.value); state.page = 1;
+      render({push:true});
       r.focus();
     });
   });
 
-  $('[data-sort]').addEventListener('change', e => { state.sort = e.target.value; state.page = 1; writeState(false); render(); });
+  $('[data-sort]').addEventListener('change', e => { state.sort = e.target.value; state.page = 1; render({push:true}); });
 
   document.addEventListener('click', e => {
     const pg = e.target.closest('[data-page]');
-    if (pg && !pg.disabled) { state.page = +pg.dataset.page; writeState(true); render({ scroll: true }); $('[data-pager] [aria-current]')?.focus(); return; }
+    if (pg && !pg.disabled) { state.page = +pg.dataset.page; render({ scroll: true,push:true }); $('[data-pager] [aria-current]')?.focus(); return; }
     const chip = e.target.closest('[data-chip-k]');
     if (chip) {
       const { chipK: k, chipV: v } = chip.dataset;
       if (k === 'q') state.q = '';
-      else if (k === 'price') { state.min = PRICE_MIN; state.max = PRICE_MAX; }
+      else if (k === 'price') { state.priceActive=false;state.min = PRICE_MIN; state.max = PRICE_MAX; }
       else state[k] = state[k].filter(x => x !== v);
-      state.page = 1; writeState(false); render();
+      state.page = 1; render({push:true});
       ($('[data-chips] button') || $('[data-sort]')).focus();
       return;
     }
     if (e.target.closest('[data-clear]')) {
       for (const k in FACETS) state[k] = [];
-      state.q = ''; state.min = PRICE_MIN; state.max = PRICE_MAX; state.page = 1;
-      writeState(false); render();
+      state.priceActive=false;state.q = ''; state.min = PRICE_MIN; state.max = PRICE_MAX; state.page = 1;
+      render({push:true});
     }
   });
 
@@ -286,5 +281,6 @@
   sheetMode.addEventListener('change', syncSheetRole);
   syncSheetRole();
 
+  state=readState();
   render();
 })();

@@ -18,7 +18,7 @@ DECOR = ('<svg class="co__leaf co__leaf--tr" aria-hidden="true"><use href="#bota
 
 
 def steps(active):
-    names = ["Cart", "Details", "Payment", "Confirmation"]
+    names = ["Cart", "Details", "Order submitted"]
     out = []
     for i, n in enumerate(names):
         state = "done" if i < active else ("current" if i == active else "")
@@ -40,8 +40,8 @@ def summary_box(title="Order summary", cta=""):
           <p class="osum__ship" data-sum-hint></p>
           {cta}
           <ul class="osum__trust" role="list">
-            <li><svg aria-hidden="true"><use href="#i-shield"/></svg>Payment verified by the studio</li>
-            <li><svg aria-hidden="true"><use href="#i-whatsapp"/></svg>Design preview before we build</li>
+            <li><svg aria-hidden="true"><use href="#i-shield"/></svg>Payment arranged with the studio</li>
+            <li><svg aria-hidden="true"><use href="#i-whatsapp"/></svg>Order details confirmed with the studio</li>
           </ul>
         </aside>'''
 
@@ -54,10 +54,10 @@ def checkout_page(crumbs):
       <div class="container">
         {steps(1)}
         <h1 class="co__title">Checkout</h1>
-        <p class="co__sub">Almost there! Share a few details to complete your order.</p>
+        <p class="co__sub">Share a few details to submit your order request.</p>
         <div class="empty" data-co-empty hidden>
           <p class="script">Your cart is empty…</p>
-          <a class="btn btn--coral" href="{{P}}collections/miniature-frame.html">Explore frames <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn--coral" href="{{P}}collections/all.html">Explore frames <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
         </div>
         <form class="co__grid" data-checkout novalidate>
           <div class="co__main">
@@ -98,18 +98,18 @@ def checkout_page(crumbs):
             </fieldset>
 
             <fieldset class="co-card">
-              <legend><span class="co-card__n">4</span>Payment</legend>
+              <legend><span class="co-card__n">4</span>Order confirmation</legend>
 
               <label class="paym">
                 <input type="radio" name="payment" value="whatsapp">
-                <span class="paym__body"><strong>Confirm on WhatsApp, pay by UPI</strong><span>Send your order to us on WhatsApp and pay by UPI once you've approved the design preview.</span></span>
+                <span class="paym__body"><strong>Confirm your order on WhatsApp</strong><span>Submit your order, then send it on WhatsApp. The studio will confirm availability, delivery and payment details.</span></span>
               </label>
               <p class="field-hint field-hint--info"><svg aria-hidden="true"><use href="#i-info"/></svg>The studio confirms your order and verifies payment before production.</p>
             </fieldset>
 
             <p class="co__legal">By placing this order you agree to our <a href="{{P}}terms.html">Terms</a>, <a href="{{P}}shipping-policy.html">Shipping Policy</a> and <a href="{{P}}refund-policy.html">Returns &amp; Refunds</a>. Personalised items can't be returned.</p>
           </div>
-          {summary_box(cta='<button class="btn btn--coral btn--block" type="submit" data-place-order>Place order <svg aria-hidden="true"><use href="#i-arrow"/></svg></button><a class="co__edit" href="{P}cart.html">Edit cart</a>')}
+          {summary_box(cta='<button class="btn btn--coral btn--block" type="submit" data-place-order>Submit order request <svg aria-hidden="true"><use href="#i-arrow"/></svg></button><a class="co__edit" href="{P}cart.html">Edit cart</a>')}
         </form>
       </div>
     </section>
@@ -123,14 +123,14 @@ def confirmation_page():
     body = f'''    <section class="co co--done">
       {DECOR}
       <div class="container">
-        {steps(3)}
+        {steps(2)}
         <div class="done" data-done hidden>
           <div class="done__head">
             <svg class="done__art" aria-hidden="true"><use href="#wreath-check"/></svg>
             <svg class="done__corner done__corner--l" aria-hidden="true"><use href="#botanical"/></svg>
             <svg class="done__corner done__corner--r" aria-hidden="true"><use href="#botanical"/></svg>
             <svg class="done__flower" aria-hidden="true"><use href="#doodle-flower"/></svg>
-            <p class="c-eyebrow" data-done-eyebrow>Order placed</p>
+            <p class="c-eyebrow" data-done-eyebrow>Order request received</p>
             <h1 class="co__title">Thank you, <span data-done-name></span>!</h1>
             <p class="done__lede" data-done-lede></p>
             <p class="done__id">Order number <strong data-done-id></strong></p>
@@ -141,10 +141,10 @@ def confirmation_page():
               <div class="co-card">
                 <div class="co-card__top"><h2 class="co-card__h">What happens next</h2><p class="co-card__script" aria-hidden="true">Your gift journey with us <svg><use href="#doodle-heart"/></svg></p></div>
                 <ol class="track-steps journey" role="list">
-                  <li><svg aria-hidden="true"><use href="#i-check"/></svg><strong>Order placed</strong><span>We'll message you on WhatsApp.</span></li>
-                  <li><svg aria-hidden="true"><use href="#i-whatsapp"/></svg><strong>Share photos</strong><span>Send us your photos and ideas.</span></li>
-                  <li><svg aria-hidden="true"><use href="#i-pencil"/></svg><strong>Design preview</strong><span>You approve the design.</span></li>
-                  <li><svg aria-hidden="true"><use href="#i-truck"/></svg><strong>Handcraft &amp; ship</strong><span>Tracking link sent to you.</span></li>
+                  <li><svg aria-hidden="true"><use href="#i-check"/></svg><strong>Order submitted</strong><span>Open WhatsApp and press Send to confirm your request.</span></li>
+                  <li><svg aria-hidden="true"><use href="#i-whatsapp"/></svg><strong>Studio confirmation</strong><span>Discuss your order details on WhatsApp.</span></li>
+                  <li><svg aria-hidden="true"><use href="#i-pencil"/></svg><strong>Preparation</strong><span>The studio prepares your confirmed order.</span></li>
+                  <li><svg aria-hidden="true"><use href="#i-truck"/></svg><strong>Dispatch and delivery</strong><span>Follow shipment updates through your private tracking link.</span></li>
                 </ol>
               </div>
               <div class="co-card co-card--addr">
@@ -163,7 +163,7 @@ def confirmation_page():
         </div>
       </div>
     </section>'''
-    page("order-confirmation.html", title="Order Confirmed | Craft by Payal", description="Your Craft by Payal order confirmation.",
+    page("order-confirmation.html", title="Order Submitted | Craft by Payal", description="Your Craft by Payal order confirmation.",
          body=body, css=CSS, scripts=("config.js", "checkout.js"), body_class="page-info page-checkout")
 
 

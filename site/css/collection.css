@@ -287,3 +287,14 @@
   .toolbar__sort { margin: 0; width: 100%; min-width: 0; }
   .toolbar__sort select { width: 100%; min-height: 48px; border-radius: 12px; text-overflow: ellipsis; }
 }
+/* Release-gated collection links remain hidden even when their parent uses flex/grid. */
+[data-resin-promotion][hidden] { display: none !important; }
+.c-hero--text { padding: clamp(48px, 7vw, 96px) 0; }
+.c-hero--text .c-hero__lede { max-width: 55ch; }
+.shop.shop--empty .shop__grid { grid-template-columns: 1fr; }
+.shop--empty .filters, .shop--empty .toolbar__sort, .shop--empty .toolbar__filter { display: none; }
+.shop[hidden] { display: none; }
+
+
+.ccard__foot { gap: 8px; min-height: 44px; }
+.ccard .add-btn { flex: 0 0 44px; }

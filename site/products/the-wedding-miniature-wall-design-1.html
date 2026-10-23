@@ -119,21 +119,17 @@
         <ul>
           <li class="has-menu">
             <button type="button" aria-expanded="false">Gifts <svg aria-hidden="true"><use href="#i-chev"/></svg></button>
-            <div class="menu">
-              <a href="../index.html#featured">Customer Favourites</a><a href="../collections/miniature-frame.html">Miniature Frames</a><a href="../collections/miniature-frame.html">Photo Hanging Frames</a><a href="../collections/miniature-frame.html">Gift Hampers</a>
-            </div>
+            <div class="menu" data-gift-type-menu><a href="../collections/all.html">All Gifts</a></div>
           </li>
           <li class="has-menu">
             <button type="button" aria-expanded="false">Occasions <svg aria-hidden="true"><use href="#i-chev"/></svg></button>
             <div class="menu">
-              <a href="../collections/miniature-frame.html?occasion=Anniversary">Anniversary</a><a href="../collections/miniature-frame.html?occasion=Birthday">Birthday</a><a href="../collections/miniature-frame.html?occasion=Wedding+%26+Engagement">Wedding</a><a href="../collections/miniature-frame.html?occasion=House+Warming">New Home</a>
+              <a href="../collections/all.html?occasion=Anniversary">Anniversary</a><a href="../collections/all.html?occasion=Birthday">Birthday</a><a href="../collections/all.html?occasion=Wedding+%26+Engagement">Wedding</a><a href="../collections/all.html?occasion=House+Warming">New Home</a>
             </div>
           </li>
           <li class="has-menu">
             <button type="button" aria-expanded="false">Collections <svg aria-hidden="true"><use href="#i-chev"/></svg></button>
-            <div class="menu">
-              <a href="../collections/miniature-frame.html">Miniature Frame</a><a href="../collections/miniature-frame.html">Photo Hanging Frame</a><a href="../collections/miniature-frame.html">Themed Gifts</a><a href="../collections/miniature-frame.html">Ready to Gift</a>
-            </div>
+            <div class="menu" data-gift-type-menu><a href="../collections/all.html">All Gifts</a></div>
           </li>
           <li><a href="../about.html">About</a></li>
         </ul>
@@ -148,7 +144,7 @@
       </div>
     </div>
     <div class="search" data-search hidden>
-      <form class="container search__form" role="search" action="../collections/miniature-frame.html" method="get">
+      <form class="container search__form" role="search" action="../collections/all.html" method="get">
         <label class="visually-hidden" for="q">Search gifts</label>
         <svg aria-hidden="true"><use href="#i-search"/></svg>
         <input id="q" name="q" type="search" placeholder="Search miniature frames, hampers, occasions…" autocomplete="off">
@@ -159,7 +155,7 @@
 
   <main id="main">
     <nav class="crumbs" aria-label="Breadcrumb">
-      <ol class="container"><li><a href="../index.html">Home</a></li><li><a href="../collections/miniature-frame.html">Miniature Frame</a></li><li><span aria-current="page">The Wedding Miniature Frame Design 1</span></li></ol>
+      <ol class="container"><li><a href="../index.html">Home</a></li><li><a href="../collections/all.html?giftType=miniature-frame">Miniature Frames</a></li><li><span aria-current="page">The Wedding Miniature Frame Design 1</span></li></ol>
     </nav>
 
     <section class="v2pdp" aria-labelledby="pdp-title">
@@ -261,7 +257,7 @@
       <div class="container">
         <div class="v2rel__head">
           <h2 id="rel-title" class="h2">You may also like</h2>
-          <a class="v2rel__all" href="../collections/miniature-frame.html?occasion=Anniversary">View all <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="v2rel__all" href="../collections/all.html?giftType=miniature-frame&amp;occasion=Anniversary">View all <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
         </div>
         <ul class="v2rel__grid" role="list">
           <li class="v2rel__card">
@@ -298,7 +294,7 @@
     <div class="container footer__grid">
       <div class="footer__brand">
         <img src="../assets/logo.svg" alt="Craft by Payal" width="190" height="78" loading="lazy">
-        <p>Handmade miniature gifts and personalised frames for your special people and unforgettable moments.</p>
+        <p>Handmade gifts, resin art and personalised keepsakes for your special people and unforgettable moments.</p>
         <ul class="footer__social" role="list">
           <li><a href="#" aria-label="Instagram"><svg><use href="#i-insta"/></svg></a></li>
           <li><a href="#" aria-label="Facebook"><svg><use href="#i-fb"/></svg></a></li>
@@ -308,7 +304,7 @@
       </div>
       <details class="footer__col" open>
         <summary>Quick Links</summary>
-        <ul role="list"><li><a href="../index.html">Home</a></li><li><a href="../collections/miniature-frame.html">Gifts</a></li><li><a href="../index.html#occasions">Occasions</a></li><li><a href="../about.html">About Us</a></li></ul>
+        <ul role="list"><li><a href="../index.html">Home</a></li><li><a href="../collections/all.html">Gifts</a></li><li><a href="../index.html#occasions">Occasions</a></li><li><a href="../about.html">About Us</a></li></ul>
       </details>
       <details class="footer__col" open>
         <summary>Help</summary>
@@ -349,9 +345,9 @@
         <button class="icon-btn" type="button" aria-label="Close menu" data-close-drawer><svg><use href="#i-close"/></svg></button>
       </div>
       <ul class="drawer__links" role="list">
-        <li><a href="../collections/miniature-frame.html" data-close-drawer>Gifts</a></li>
+        <li><a href="../collections/all.html" data-close-drawer>Gifts</a></li>
         <li><a href="../index.html#occasions" data-close-drawer>Occasions</a></li>
-        <li><a href="../collections/miniature-frame.html" data-close-drawer>Collections</a></li>
+        <li><a href="../collections/all.html" data-close-drawer>Collections</a></li><li data-gift-type-mobile></li>
         
         <li><a href="../about.html" data-close-drawer>About</a></li>
       </ul>
@@ -374,7 +370,7 @@
       <ul class="cart__items" role="list" data-cart-items></ul>
       <div class="cart__empty" data-cart-empty>
         <p class="script">Your cart is waiting for a story…</p>
-        <a class="btn btn--coral" href="../collections/miniature-frame.html" data-close-cart>Explore Gifts <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="btn btn--coral" href="../collections/all.html" data-close-cart>Explore Gifts <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
       </div>
       <div class="cart__foot" data-cart-foot hidden>
         <p class="cart__ship" data-cart-ship></p>
@@ -389,6 +385,8 @@
 
   <script src="../js/catalog.js"></script>
   <script src="../js/config.js"></script>
+  <script src="../js/gift-catalogue.js"></script>
+  <script src="../js/resin-samples.js"></script>
   <script src="../js/catalog-live.js"></script>
   <script src="../js/main.js"></script>
   <script src="../js/product.js"></script>

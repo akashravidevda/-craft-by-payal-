@@ -1,5 +1,7 @@
 # Order book in Google Sheets — setup (about 10 minutes)
 
+> Legacy setup guide. For this existing project, start with [BACKEND-HANDOVER.md](../../BACKEND-HANDOVER.md). Do not recreate the spreadsheet/project or paste only the legacy source Code.gs using these older steps. The current staging system uses the combined deploy package and schema-2 Shop tables.
+
 When it's set up:
 - every order on the website appears as a new row in a Google Sheet, with a short order number like **CBP-1001**;
 - you update each order's **Status** from a dropdown (on your phone or computer);

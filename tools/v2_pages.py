@@ -6,6 +6,7 @@ Only layout/structure comes from the source concepts — all copy is Craft by Pa
 can't back up (ratings, sales counts, discounts, turnaround promises) are deliberately left out.
 """
 import json
+from pathlib import Path
 
 B = None  # set by build()
 
@@ -34,6 +35,8 @@ def help_band(title="Still need help?", text="For any questions, write to us or 
 
 # ------------------------------------------------------------------ product page
 def product_page(p):
+    category = "engagement-platter" if p["id"] in {"engagement-platter", "engagement-platter-copy", "engagement-platter-design-3"} else "miniature-frame"
+    category_name = "Engagement Platters" if category == "engagement-platter" else "Miniature Frames"
     kind = "miniature wall" if "wall" in p["name"].lower() else "miniature frame"
     images = p["images"] or [p["image"]]
     img = B.img
@@ -67,7 +70,7 @@ def product_page(p):
     acc_html = "\n".join(f'''            <details{" open" if i == 0 else ""}><summary><svg aria-hidden="true"><use href="#{ic}"/></svg>{E(t)}</summary><div class="v2acc__body">{b}</div></details>'''
                          for i, (ic, t, b) in enumerate(acc))
 
-    body = f'''{B.crumbs(("Home", "{P}index.html"), ("Miniature Frame", "{P}collections/miniature-frame.html"), (p["name"], ""))}
+    body = f'''{B.crumbs(("Home", "{P}index.html"), (category_name, "{P}collections/all.html?giftType=" + category), (p["name"], ""))}
 
     <section class="v2pdp" aria-labelledby="pdp-title">
       <div class="container v2pdp__grid">
@@ -144,7 +147,7 @@ def product_page(p):
       <div class="container">
         <div class="v2rel__head">
           <h2 id="rel-title" class="h2">You may also like</h2>
-          <a class="v2rel__all" href="{{P}}collections/miniature-frame.html{('?occasion=' + first_occ.replace(' ', '+').replace('&', '%26')) if first_occ else ''}">View all <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="v2rel__all" href="{{P}}collections/all.html?giftType={category}{('&amp;occasion=' + first_occ.replace(' ', '+').replace('&', '%26')) if first_occ else ''}">View all <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
         </div>
         <ul class="v2rel__grid" role="list">
           {rel}
@@ -176,20 +179,22 @@ def rel_card(q):
 
 # ------------------------------------------------------------------ cart
 def cart_page():
+    from checkout_pages import steps
     body = f'''    <section class="v2cart">
       <svg class="co__leaf co__leaf--tr" aria-hidden="true"><use href="#botanical"/></svg>
       <svg class="co__leaf co__leaf--bl" aria-hidden="true"><use href="#botanical"/></svg>
       <div class="container">
+        {steps(0)}
         <div class="v2cart__head">
           <div><h1 class="v2cart__title">Your cart</h1><p class="v2cart__count" data-cart-count-text>0 items</p></div>
-          <a class="v2cart__continue" href="{{P}}collections/miniature-frame.html"><svg aria-hidden="true"><use href="#i-arrow-left"/></svg> Continue shopping</a>
+          <a class="v2cart__continue" href="{{P}}collections/all.html"><svg aria-hidden="true"><use href="#i-arrow-left"/></svg> Continue shopping</a>
         </div>
         <div class="v2cart__grid" data-cart-page>
           <div>
             <ul class="v2lines" role="list" data-cart-lines></ul>
             <div class="empty" data-cart-page-empty hidden>
               <p class="script">Your cart is waiting for a story…</p>
-              <a class="btn btn--coral" href="{{P}}collections/miniature-frame.html">Explore frames <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+              <a class="btn btn--coral" href="{{P}}collections/all.html">Explore frames <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
             </div>
           </div>
           <aside class="osum v2sum" aria-labelledby="osum-title">
@@ -525,4 +530,5 @@ def build(module):
     B = module
     for p in B.DATA:
         product_page(p)
+    B.page('products/item.html',title='Gift details | Craft by Payal',description='View product details and available options.',body=Path(__file__).with_name('data').joinpath('product-detail.html').read_text(encoding='utf-8'),css=('collection.css','pages.css','v2.css'),scripts=('product.js',),body_class='page-product')
     cart_page(); about(); contact(); faqs(); track(); policies()

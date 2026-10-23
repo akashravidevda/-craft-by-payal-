@@ -18,6 +18,8 @@ jobs:
           node-version: "22"
       - name: Sheets backend regression tests
         run: node tools/test-production.cjs
+      - name: Collection migration and publication tests
+        run: node tools/test-collections.cjs
       - name: Rebuild generated pages
         run: |
           python tools/build_collection.py

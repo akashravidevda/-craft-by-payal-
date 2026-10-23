@@ -37,6 +37,12 @@
   }, { passive: true });
 
   /* ---------- Options ---------- */
+  if(P.listingState==='preview'){
+    $('[data-price]').textContent='Price to be confirmed';
+    const form=$('[data-pdp-form]');form.hidden=true;form.replaceChildren();
+    const status=document.createElement('p');status.className='catalog-notice';status.textContent='Preview only — this design is not available to order.';form.before(status);
+    return;
+  }
   const V = P.variants;
   const uniq = key => [...new Set(V.map(v => v[key]).filter(Boolean))];
   const sizes = uniq('size').sort((a, b) => parseInt(a) - parseInt(b) || parseInt(a.split('×')[1]) - parseInt(b.split('×')[1]));
@@ -48,7 +54,7 @@
 
   function buildOpts(key, values) {
     const box = $(`[data-opt="${key}"]`);
-    if (values.length < 2 && !(key === 'size' && values.length === 1)) return;
+    if (values.length < 2 && !(key === 'size' && values.length === 1 && values[0]!=='Standard')) return;
     box.hidden = false;
     $('.opt__list', box).innerHTML = values.map((v, i) => `
       <label class="opt__pill"><input type="radio" name="${key}" value="${String(v).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}" ${v === pick[key] ? 'checked' : ''}>

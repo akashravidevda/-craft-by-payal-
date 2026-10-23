@@ -23,7 +23,7 @@
     list.innerHTML = lines.map(l => `<li class="osum__item">
         <span class="osum__img"><img src="${window.CBP_IMAGE(l.image,120)}" alt="" width="56" height="56"><b>${l.qty}</b></span>
         <span class="osum__name">${esc(l.name)}${l.variant ? `<small>${esc(l.variant)}</small>` : ''}${l.note ? `<small class="osum__note">${esc(l.note)}</small>` : ''}</span>
-        <span class="osum__price">${inr(l.qty * l.price)}</span>
+        <span class="osum__price">${l.notOrderable?"Unavailable to order":inr(l.qty * l.price)}</span>
       </li>`).join('');
     $('[data-sum-subtotal]').textContent = inr(totals.subtotal);
     $('[data-sum-shipping]').textContent = totals.shipping ? inr(totals.shipping) : 'Free';
@@ -32,7 +32,7 @@
     if (hint) hint.textContent = totals.subtotal && totals.subtotal < CBP.FREE_SHIP
       ? `Add ${inr(CBP.FREE_SHIP - totals.subtotal)} more for free shipping.` : '';
   }
-  const liveLines = () => CBP.cartLines().map(l => ({ key: l.key, id: l.id, name: l.p.name, image: l.p.image, managed:l.p.managed, variantId:l.variantId, unresolved:l.unresolved, variant: l.variant, note: l.note, qty: l.qty, price: l.price }));
+  const liveLines = () => CBP.cartLines().map(l => ({ key: l.key, id: l.id, name: l.p.name, image: l.p.image, managed:l.p.managed, variantId:l.variantId, unresolved:l.unresolved, notOrderable:l.notOrderable, variant: l.variant, note: l.note, qty: l.qty, price: l.price }));
 
   /* ================= Cart page ================= */
   const cartPage = $('[data-cart-page]');
@@ -45,7 +45,7 @@
             <div class="v2line__top">
               <div>
                 <h2 class="v2line__name"><a href="${window.CBP_PRODUCT_URL(l)}">${esc(l.name)}</a></h2>
-                <p class="v2line__price">${inr(l.price)}</p>
+                <p class="v2line__price">${l.notOrderable?"Unavailable to order":inr(l.price)}</p>
                 ${l.variant ? l.variant.split(' · ').map(v => `<p class="v2line__meta">${/in$/.test(v) ? 'Size' : 'Style'}: ${esc(v)}</p>`).join('') : '<p class="v2line__meta">Size &amp; style: confirmed on WhatsApp</p>'}
                 ${l.unresolved?'<p class="v2line__meta" role="status">Product details need to be rechecked. Your item has been kept.</p>':''}
                 ${l.note ? `<p class="v2line__meta v2line__note">${esc(l.note)}</p>` : ''}
@@ -60,7 +60,7 @@
                 </div>
               </div>
               <button class="cline__remove" type="button" data-line-remove="${l.key}" aria-label="Remove ${esc(l.name)}"><svg aria-hidden="true"><use href="#i-trash"/></svg><span>Remove</span></button>
-              <p class="v2line__total">${inr(l.qty * l.price)}</p>
+              <p class="v2line__total">${l.notOrderable?"Unavailable to order":inr(l.qty * l.price)}</p>
             </div>
           </div>
         </li>`).join('');
@@ -188,12 +188,13 @@
       } catch { return { ok: false, error: 'network' }; }
       finally { clearTimeout(t); }
     }
-    const busy = (on, label) => { placeBtn.disabled = on; placeBtn.firstChild.textContent = on ? label : 'Place order '; };
+    const busy = (on, label) => { placeBtn.disabled = on; placeBtn.firstChild.textContent = on ? label : 'Submit order request '; };
 
     const placeBtn = $('[data-place-order]');
     form.addEventListener('submit', async e => {
       e.preventDefault();
       if(submitting)return;
+      if(CBP.cartLines().some(l=>l.notOrderable)){const box=$('[data-co-errors]');box.hidden=false;box.textContent='Remove preview or unavailable products from your cart before submitting an order.';return;}
       tried = true;
       const errs = validate();
       const box = $('[data-co-errors]');
@@ -220,7 +221,7 @@
           if(!result.ok||!result.quote)throw Error(result.error||'Could not verify prices. Your cart has been kept.');
           const quote=result.quote;
           if((quote.total!==order.total||quote.lines.some((l,i)=>l.price!==order.lines[i]?.price))&&reviewedQuote!==inputKey+quote.fingerprint){
-            reviewedQuote=inputKey+quote.fingerprint;renderSummary(quote.lines,quote);box.hidden=false;box.textContent='Prices or shipping have changed. Review the updated summary, then press Place order again to accept it.';return;
+            reviewedQuote=inputKey+quote.fingerprint;renderSummary(quote.lines,quote);box.hidden=false;box.textContent='Prices or shipping have changed. Review the updated summary, then press Submit order request again to accept it.';return;
           }
           payload={action:'create',requestId:crypto.randomUUID(),quoteFingerprint:quote.fingerprint,quoteExpires:quote.expiresAt,quoteToken:quote.token,order};
           session.set('cbp-pending-order',{inputKey,payload});
@@ -258,14 +259,13 @@
     const itemsText = o.lines.map((l, i) => [
       `*${i + 1}. ${l.name}*`,
       l.variant || '',
-      `${l.qty} × ${inr(l.price)} · ${inr(l.qty * l.price)}`,
+      `${l.qty} × ${l.notOrderable?"Unavailable to order":inr(l.price)} · ${l.notOrderable?"Unavailable to order":inr(l.qty * l.price)}`,
       l.note ? `Personalisation: ${l.note}` : ''
     ].filter(Boolean).join('\n')).join('\n\n');
     const gift = o.gift || {};
     const a0 = o.address;
     const neededBy = gift.needBy ? new Date(gift.needBy + 'T12:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
-    const payment = o.demo ? 'Test payment · no money taken' :
-      o.payment === 'online' && o.status === 'paid' ? 'Paid online' : 'Pending · please confirm payment details';
+    const payment = 'Pending · please confirm payment details';
     const giftDetails = [
       gift.occasion ? `Occasion: ${gift.occasion}` : '',
       neededBy ? `Requested by: ${neededBy}` : '',
@@ -274,14 +274,14 @@
     ].filter(Boolean);
     const details = [
       '🎁 *CRAFT BY PAYAL*\n_Little things. Lasting memories._',
-      `*Order ${o.id}*`,
+      `*Order request ${o.id}*`,
       `🛍️ *Your little treasures*\n${itemsText}`,
       ['*Order summary*',
         `Subtotal: ${inr(o.subtotal ?? o.lines.reduce((sum, l) => sum + l.price * l.qty, 0))}`,
         `Shipping: ${Number(o.shipping || 0) === 0 ? 'Free' : inr(o.shipping)}`,
         `*Total: ${inr(o.total)}*`,
         `Payment: ${payment}`,
-        o.paymentRef ? `Reference: ${o.paymentRef}` : ''
+        'Payment will be arranged with the studio.'
       ].filter(Boolean).join('\n'),
       ['📦 *Deliver with care*', o.customer.name, a0.line1, a0.line2,
         `${a0.city}, ${a0.state} — ${a0.pin}`,
@@ -289,29 +289,16 @@
       ].filter(Boolean).join('\n'),
       giftDetails.length ? `💌 *A personal touch*\n${giftDetails.join('\n')}` : ''
     ].filter(Boolean).join('\n\n');
-    const waOrder = `${details}\n\nI'd like to confirm this order. I'll share my photos here.\nPlease confirm the design and delivery timeline. 🤍`;
-    const waPhotos = `${details}\n\nI've placed this order and will share my photos here for the design preview. 🤍`;
-    if (o.payment === 'whatsapp') {
-      $('[data-done-eyebrow]').textContent = 'One last step';
-      $('[data-done-lede]').textContent = 'Open WhatsApp, then press Send to share your order. We\'ll confirm the design and payment details with you.';
-      $('[data-done-actions]').innerHTML = `<a class="btn btn--coral" href="${WA}?text=${encodeURIComponent(waOrder)}" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg> Open WhatsApp to confirm</a>
-        <a class="btn-outline" href="collections/miniature-frame.html">Continue shopping</a>`;
-    } else {
-      $('[data-done-eyebrow]').textContent = o.demo ? 'Order placed · demo payment' : 'Payment received';
-      $('[data-done-lede]').textContent = `We've received your order${o.demo ? ' (test payment — no money was taken)' : ''}. Next, send us your photos on WhatsApp so we can start your design preview.`;
-      $('[data-done-actions]').innerHTML = `<a class="btn btn--coral" href="${WA}?text=${encodeURIComponent(waPhotos)}" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg> Share photos on WhatsApp</a>
-        <a class="btn-outline" href="collections/miniature-frame.html">Continue shopping</a>`;
-    }
-    if(o.uploadUrl&&o.orderId&&o.uploadToken){
-      const uploadLink=document.createElement('a');uploadLink.className='btn-outline';uploadLink.textContent='Upload photos privately';uploadLink.target='_blank';uploadLink.rel='noopener noreferrer';
-      uploadLink.href=o.uploadUrl+'#'+new URLSearchParams({orderId:o.orderId,token:o.uploadToken});
-      $('[data-done-actions]').append(uploadLink);
-    }
+    const waOrder = `${details}\n\nI'd like to confirm this order request. Please confirm availability, delivery and payment details. 🤍`;
+    $('[data-done-eyebrow]').textContent = 'Order request received';
+    $('[data-done-lede]').textContent = 'Open WhatsApp, then press Send to share your order request. The studio will confirm availability, delivery and payment details. If photos or personalisation details are needed, the studio will guide you.';
+    $('[data-done-actions]').innerHTML = `<a class="btn btn--coral" href="${WA}?text=${encodeURIComponent(waOrder)}" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg> Open WhatsApp to confirm</a>
+      <a class="btn-outline" href="collections/all.html">Continue shopping</a>`;
     if(o.orderId&&o.accessToken){const track=document.createElement('a');track.className='btn-outline';track.textContent='Track this order';track.href='track-order.html#'+new URLSearchParams({orderId:o.orderId,token:o.accessToken});$('[data-done-actions]').append(track);}
     const a = o.address;
     $('[data-done-addr]').innerHTML = `<strong>${esc(o.customer.name)}</strong><br>${esc(a.line1)}${a.line2 ? '<br>' + esc(a.line2) : ''}<br>${esc(a.city)}, ${esc(a.state)} ${esc(a.pin)}<br>${esc(o.customer.phone)} · ${esc(o.customer.email)}`
       + (o.gift.message ? `<p class="done__gift"><svg aria-hidden="true"><use href="#i-gift"/></svg> Gift message: “${esc(o.gift.message)}”</p>` : '');
     renderSummary(o.lines, o);
-    document.title = `Order ${o.id} confirmed | Craft by Payal`;
+    document.title = `Order ${o.id} submitted | Craft by Payal`;
   }
 })();
